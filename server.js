@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const db = mysql.createConnection({
-    host: 'https://gpa-cadastro.onrender.com/api', // Altere para o nome do host fornecido pelo Render
+    host: 'GPA-Cadastro', // Altere para o nome do host fornecido pelo Render
     user: 'root',
     password: 'Mudar-55',
     database: 'gpa_cadastro',
