@@ -1,0 +1,43 @@
+<!DOCTYPE html> 
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro e Devolução</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+</head>
+<body>
+    <center>
+    <header>
+        <img class="img" src="img/GPA.png" alt="Logo">
+        <h3>Cadastro de Equipamentos</h3>
+    </header>
+    </center>
+    <div class="container">
+        <!-- Cadastro -->
+        <form id="userForm">
+            <h2>Cadastro</h2>
+            <input type="text" id="matricula" placeholder="Digite a matrícula" required>
+            <input type="text" id="coletor" placeholder="Digite o coletor" required>
+            <select id="turno" required>
+                <option value="" disabled selected>Escolha o turno</option>
+                <option value="Primeiro Turno">Primeiro Turno</option>
+                <option value="Segundo Turno">Segundo Turno</option>
+                <option value="Terceiro Turno">Terceiro Turno</option>
+            </select>
+            <button type="submit">Cadastrar</button>
+        </form>
+        
+        <!-- Devolução -->
+        <h2 id="devolucaoTitle" style="cursor: pointer; padding-bottom: 10px;">Devolução</h2>
+        <div id="devolucaoSection">
+            <input type="text" id="devolucaoColetor" placeholder="Digite o coletor para devolver">
+            <button id="devolver">Devolver</button>
+        </div>
+        <a href="dashboard.html"><h2>Dashboard</h2></a>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
