@@ -11,13 +11,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Conexão com o MySQL
 const db = mysql.createConnection({
-  host: 'localhost', // ou o IP do seu servidor MySQL
-  user: 'root',
-  password: 'Mudar-55', // Sua senha do MySQL
-  database: 'gpa_cadastro',
-});
+    host: 'mysql_host_provido_pelo_render', // Altere para o nome do host fornecido pelo Render
+    user: 'root',
+    password: 'Mudar-55',
+    database: 'gpa_cadastro',
+  });
+  
 
 // Verifica a conexão
 db.connect((err) => {
