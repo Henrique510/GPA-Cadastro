@@ -1,120 +1,133 @@
-
 require('dotenv').config();
 const express = require('express');
-const { Client } = require('pg'); // Usando o PostgreSQL em vez de MySQL
+const { Client } = require('pg');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*', // Em produção, restrinja as origens (ex: 'https://seusite.com')
+    methods: 'GET,POST', // Limita os métodos para maior segurança
+    allowedHeaders: 'Content-Type', // Limita os headers permitidos
+}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Verifica variáveis de ambiente obrigatórias
-if (!process.env.PG_HOST || !process.env.PG_USER || !process.env.PG_PASSWORD || !process.env.PG_DATABASE || !process.env.PG_PORT) {
-    console.error('Erro: Variáveis de ambiente do banco de dados não configuradas corretamente.');
-    process.exit(1);
-  }
-  
-
+// Configuração do cliente PostgreSQL
 const client = new Client({
-    host: process.env.PG_HOST,       // Atualizado para PG_HOST
-    user: process.env.PG_USER,       // Atualizado para PG_USER
-    password: process.env.PG_PASSWORD, // Atualizado para PG_PASSWORD
-    database: process.env.PG_DATABASE, // Atualizado para PG_DATABASE
-    port: process.env.PG_PORT,       // Atualizado para PG_PORT
+    host: process.env.PG_HOST,
+    user: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    database: process.env.PG_DATABASE,
+    port: process.env.PG_PORT,
     ssl: {
-      rejectUnauthorized: false, // Permite a conexão sem validar o certificado
-    },
-  });
-  
-
-// Verifica conexão com o banco
-client.connect(err => {
-  if (err) {
-    console.error('Erro ao conectar no banco:', err.stack);
-    process.exit(1);
-  } else {
-    console.log('Conectado ao PostgreSQL');
+      rejectUnauthorized: false // NÃO RECOMENDADO EM PRODUÇÃO!
   }
 });
 
-// Cria tabela se não existir
+client.connect(err => {
+    if (err) {
+        console.error('Erro ao conectar no banco:', err);
+        process.exit(1);
+    } else {
+        console.log('Conectado ao PostgreSQL');
+    }
+});
+
+// Cria tabela se não existir (com tratamento de erro mais robusto)
 client.query(`
   CREATE TABLE IF NOT EXISTS coletores (
-    id SERIAL PRIMARY KEY,
-    matricula VARCHAR(255) NOT NULL,
-    coletor VARCHAR(255) NOT NULL UNIQUE,
-    turno VARCHAR(255) NOT NULL,
-    data DATE NOT NULL
+      id SERIAL PRIMARY KEY,
+      matricula VARCHAR(255) NOT NULL,
+      coletor VARCHAR(255) NOT NULL UNIQUE,
+      turno VARCHAR(255) NOT NULL,
+      data DATE NOT NULL,
+      status VARCHAR(255) DEFAULT 'Pendente',
+      data_expiracao TIMESTAMP
   );
-`, err => {
+`, (err, res) => {
   if (err) {
-    console.error('Erro ao criar tabela:', err.stack);
-    process.exit(1);
+      console.error('Erro ao criar/verificar tabela:', err);
+  } else {
+      console.log('Tabela "coletores" pronta.');
   }
 });
 
-// Rota para obter os dados dos coletores
+
 app.get('/api/coletores', (req, res) => {
-  const query = 'SELECT * FROM coletores';
-  
-  client.query(query, (err, results) => {
-    if (err) {
-      console.error('Erro ao consultar os dados:', err);
-      return res.status(500).json({ message: 'Erro ao obter dados' });
-    }
-    res.json(results.rows); // Alterado para `rows`, que é a forma correta no PostgreSQL
+  client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => { // Removido data_expiracao
+      if (err) {
+          console.error('Erro ao consultar coletores:', err);
+          return res.status(500).json({ message: 'Erro ao obter dados.' });
+      }
+      res.json(result.rows);
   });
 });
-
-// Rota para cadastrar coletor
 app.post('/api/cadastrar', (req, res) => {
-  const { matricula, coletor, turno } = req.body;
+    const { matricula, coletor, turno } = req.body;
+    const data = new Date().toISOString().split('T')[0];
 
-  if (!matricula || !coletor || !turno) {
-    return res.status(400).json({ message: 'Campos obrigatórios não preenchidos' });
-  }
-
-  const data = new Date().toISOString().split('T')[0];
-  const query = `
-    INSERT INTO coletores (matricula, coletor, turno, data) 
-    VALUES ($1, $2, $3, $4) ON CONFLICT (coletor) DO UPDATE SET matricula=$1, turno=$3, data=$4
-  `;
-  client.query(query, [matricula, coletor, turno, data], (err) => {
-    if (err) {
-      console.error('Erro ao cadastrar:', err.stack);
-      res.status(500).json({ message: 'Erro ao cadastrar' });
-    } else {
-      res.json({ message: 'Cadastrado com sucesso' });
-    }
-  });
+    client.query(
+        `INSERT INTO coletores (matricula, coletor, turno, data) VALUES ($1, $2, $3, $4)
+        ON CONFLICT (coletor) DO UPDATE SET matricula = $1, turno = $3, data = $4`,
+        [matricula, coletor, turno, data],
+        (err) => {
+            if (err) {
+                console.error('Erro ao cadastrar coletor:', err);
+                return res.status(500).json({ message: 'Erro ao cadastrar.' });
+            }
+            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+        }
+    );
 });
 
-// Rota para devolver coletor
-app.post('/api/devolver', (req, res) => {
+app.post('/api/devolver', async (req, res) => {
   const { coletor } = req.body;
 
   if (!coletor) {
-    return res.status(400).json({ message: 'Campo coletor é obrigatório' });
+      return res.status(400).json({ message: 'Campo coletor é obrigatório.' });
   }
 
-  const query = 'DELETE FROM coletores WHERE coletor = $1';
-  client.query(query, [coletor], err => {
-    if (err) {
-      console.error('Erro ao devolver:', err.stack);
-      res.status(500).json({ message: 'Erro ao devolver' });
-    } else {
-      res.json({ message: 'Devolução realizada' });
-    }
-  });
+  try {
+      const result = await client.query(
+          `UPDATE coletores SET status = 'Devolvido', data_expiracao = NOW() + INTERVAL '4 days' WHERE coletor = $1`,
+          [coletor]
+      );
+
+      if (result.rowCount === 0) {
+          return res.status(404).json({ message: `Coletor "${coletor}" não encontrado.` });
+      }
+
+      res.json({ message: 'Coletor devolvido com sucesso.' });
+  } catch (error) {
+      console.error('Erro ao devolver coletor:', error);
+      res.status(500).json({ message: 'Erro ao devolver.' });
+  }
 });
 
-// Servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
+
+// Limpeza do banco de dados (cron) - MANTIDA
+async function limparBancoDeDados() {
+  try {
+      const result = await client.query(
+          `DELETE FROM coletores WHERE status = 'Devolvido' AND data_expiracao <= NOW()`
+      );
+      console.log(`Limpeza: ${result.rowCount} registros excluídos em ${new Date().toLocaleString('pt-BR')}`);
+  } catch (error) {
+      console.error('Erro na limpeza do banco:', error);
+  }
+}
+
+// Executa a limpeza diariamente à meia-noite (00:00)
+cron.schedule('0 0 * * *', limparBancoDeDados);
+
+// Executa a limpeza na inicialização do servidor
+limparBancoDeDados();
+
+// Inicia o servidor
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

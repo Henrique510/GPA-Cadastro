@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico</title>
+    <link rel="stylesheet" href="css/dash.css">
+    <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+</head>
+<body>
+    <h1>Histórico de Movimentações</h1>
+    <a href="dashboard.html"><button>Voltar</button></a>
+    <div id="historicoContainer">
+        <table>
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Coletor</th>
+                    <th>Turno</th> <!—Adicionei o Turno aqui-->
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody id="historicoTable"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function carregarHistorico() {
+            try {
+                const response = await fetch('/api/historico');
+                const historico = await response.json();
+                const historicoTable = document.getElementById('historicoTable');
+                historicoTable.innerHTML = historico.map(item => 
+            <tr>
+                <td>${item.matricula || 'N/A'}</td>
+                <td>${item.coletor || 'N/A'}</td>
+                <td>${item.turno || 'N/A'}</td> 
+                <td>${new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
+            </tr>
+        ).join('');
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+
+        carregarHistorico();
+    </script>
+</body>
+</html>

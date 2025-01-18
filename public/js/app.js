@@ -4,35 +4,69 @@ document.addEventListener("DOMContentLoaded", () => {
     const devolucaoInput = document.getElementById('devolucaoColetor');
     const devolverButton = document.getElementById('devolver');
     const messageContainer = document.getElementById('messageContainer');
+    const devolucaoSection = document.getElementById('devolucaoSection');
+    const devolucaoTitle = document.getElementById('devolucaoTitle');
 
-    // Forçar entrada em maiúsculas para matrícula, coletor e devolução
-    document.getElementById('matricula').addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
+    // Inicialmente oculta a seção de devolução
+    devolucaoSection.style.display = 'none';
 
-    document.getElementById('coletor').addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
+    // Forçar entrada em maiúsculas
+    document.getElementById('matricula').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
+    document.getElementById('coletor').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
+    devolucaoInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
 
-    devolucaoInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-
-    // Função para exibir mensagens
-    function showMessage(message, type = 'success') {
-        messageContainer.style.display = 'block';
-        messageContainer.textContent = message;
-        messageContainer.style.backgroundColor = type === 'success' ? 'green' : 'red';
-        messageContainer.style.color = 'white';
-    }
-
-    // Alterna a visibilidade da seção de devolução
-    document.getElementById('devolucaoTitle').addEventListener('click', () => {
-        const devolucaoSection = document.getElementById('devolucaoSection');
+    // Mostrar/Esconder seção de devolução
+    devolucaoTitle.addEventListener('click', () => {
         devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Cadastro de coletor
+    function showMessage(message, type = 'success', duration = 3000) {
+        messageContainer.textContent = message;
+        messageContainer.style.backgroundColor = type === 'success' ? 'green' : 'red';
+        messageContainer.style.color = 'white';
+        messageContainer.style.display = 'block';
+
+        setTimeout(() => {
+            messageContainer.style.display = 'none';
+        }, duration);
+    }
+
+    async function registerCollector(matricula, coletor, turno) {
+        try {
+            const response = await fetch(`${API_URL}/cadastrar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricula, coletor, turno }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar.`);
+            }
+            return response.json(); // Retorna os dados do JSON
+        } catch (error) {
+            console.error('Erro no cadastro:', error);
+            throw error;
+        }
+    }
+
+    async function devolveCollector(coletor) {
+        try {
+            const response = await fetch(`${API_URL}/devolver`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ coletor }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ${response.status} ao devolver.`);
+            }
+            return response.json();// Retorna os dados do JSON
+        } catch (error) {
+            console.error('Erro na devolução:', error);
+            throw error;
+        }
+    }
+
     userForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -46,56 +80,29 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const response = await fetch(`${API_URL}/cadastrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, coletor, turno }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                showMessage(data.message || 'Erro ao cadastrar o coletor!', 'error');
-            } else {
-                document.getElementById('matricula').value = ''; 
-                document.getElementById('coletor').value = ''; 
-                showMessage('Coletor cadastrado com sucesso!', 'success');
-            }
-        } catch (err) {
-            console.error('Erro ao cadastrar coletor:', err);
-            showMessage('Erro ao cadastrar o coletor! Verifique o console para mais detalhes.', 'error');
+            const data = await registerCollector(matricula, coletor, turno);
+            document.getElementById('matricula').value = '';
+            document.getElementById('coletor').value = '';
+            showMessage(data.message || 'Coletor cadastrado com sucesso!');
+        } catch (error) {
+            showMessage(error.message, 'error');
         }
     });
 
-    // Devolução de coletor
     devolverButton.addEventListener('click', async () => {
         const coletor = devolucaoInput.value.trim();
-
         if (!coletor) {
             showMessage('Informe o coletor para devolução!', 'error');
             return;
         }
 
         try {
-            const response = await fetch(`${API_URL}/devolver`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ coletor }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                devolucaoInput.value = ''; // Limpa o campo de devolução após sucesso
-            } else {
-                showMessage(data.message || 'Erro ao devolver o coletor!', 'error');
-            }
-        } catch (err) {
-            console.error('Erro ao devolver coletor:', err);
-            showMessage('Erro ao devolver o coletor! Verifique o console para mais detalhes.', 'error');
+            const data = await devolveCollector(coletor);
+            devolucaoInput.value = '';
+            showMessage(data.message || 'Coletor devolvido com sucesso!');
+            window.location.href = 'dashboard.html';
+        } catch (error) {
+            showMessage(error.message, 'error');
         }
     });
 });
-
-
-

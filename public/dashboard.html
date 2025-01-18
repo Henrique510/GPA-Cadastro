@@ -6,12 +6,20 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="css/dash.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+    <style>
+.status-pendente { background-color: red; color: white; }
+.status-devolvido { background-color: green; color: white; }
+    </style>
 </head>
 <body>
-    <h1>Dashboard de Cadastros</h1>
+    <header>
+        <img class="img" src="img/GPA.png" alt="Logo">
+        <h3>Dashboard de Cadastros</h3>
+    </header>
+    
     <a href="index.html"><button>Voltar</button></a>
     <button onclick="carregarDados()">Atualizar Dados</button>
-    
+
     <div id="filtros">
         <input type="text" id="filtroMatricula" placeholder="Filtrar por Matrícula">
         <input type="text" id="filtroColetor" placeholder="Filtrar por Coletor">
@@ -19,14 +27,15 @@
         <input type="text" id="filtroData" placeholder="Filtrar por Data">
         <button onclick="filtrarDados()">Filtrar</button>
     </div>
-    
+
     <table>
         <thead>
             <tr>
                 <th>Matrícula</th>
                 <th>Coletor</th>
                 <th>Turno</th>
-                <th>Data</th>
+                <th>Data Cadastro</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody id="dataTable"></tbody>
@@ -38,48 +47,75 @@
         async function carregarDados() {
             try {
                 const response = await fetch('/api/coletores');
-                const data = await response.json();
-                console.log('Dados recebidos:', data); // Verificando os dados
-                dados = data;
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar dados: ${response.status}`);
+                }
+                dados = await response.json();
                 exibirDados(dados);
             } catch (error) {
                 console.error('Erro ao carregar os dados:', error);
+                alert(error.message || "Erro desconhecido ao carregar os dados.");
             }
         }
 
         function exibirDados(dados) {
-            const dataTable = document.getElementById('dataTable');
-            dataTable.innerHTML = dados.map(item => {
-                const dataFormatada = item.data
-                    ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-                    : 'Não Disponível';
-                return `
-                    <tr>
-                        <td>${item.matricula}</td>
-                        <td>${item.coletor}</td>
-                        <td>${item.turno}</td>
-                        <td>${dataFormatada}</td>
-                    </tr>
-                `;
-            }).join('');
+    const dataTable = document.getElementById('dataTable');
+    if (!dataTable) {
+        console.error("Elemento 'dataTable' não encontrado!");
+        return;
+    }
+
+    dataTable.innerHTML = dados.map(item => {
+        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
+        let status = item.status.trim().toLowerCase(); // Mantém o trim e toLowerCase para consistência
+        let statusClass;
+
+        if (status === 'pendente') {
+            statusClass = 'status-pendente';
+            status = "Pendente"; // Capitaliza para "Pendente"
+        } else if (status === 'devolvido') {
+            statusClass = 'status-devolvido';
+            status = "Devolvido"; // Capitaliza para "Devolvido"
+        } else {
+            statusClass = '';
         }
 
-        function filtrarDados() {
-            const matricula = document.getElementById('filtroMatricula').value.toLowerCase();
-            const coletor = document.getElementById('filtroColetor').value.toLowerCase();
-            const turno = document.getElementById('filtroTurno').value.toLowerCase();
-            const data = document.getElementById('filtroData').value.toLowerCase();
+        return `<tr>
+            <td>${item.matricula}</td>
+            <td>${item.coletor}</td>
+            <td>${item.turno}</td>
+            <td>${dataFormatada}</td>
+            <td class="${statusClass}">${status}
+        </tr>`;
+    }).join('');
+}
 
-            const dadosFiltrados = dados.filter(item =>
-                (!matricula || item.matricula.toLowerCase().includes(matricula)) &&
-                (!coletor || item.coletor.toLowerCase().includes(coletor)) &&
-                (!turno || item.turno.toLowerCase().includes(turno)) &&
-                (!data || new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }).includes(data))
-            );
+        function filtrarDados() {
+            const matriculaInput = document.getElementById('filtroMatricula');
+            const coletorInput = document.getElementById('filtroColetor');
+            const turnoInput = document.getElementById('filtroTurno');
+            const dataInput = document.getElementById('filtroData');
+
+            const matricula = matriculaInput.value.toLowerCase();
+            const coletor = coletorInput.value.toLowerCase();
+            const turno = turnoInput.value.toLowerCase();
+            const data = dataInput.value;
+
+            const dadosFiltrados = dados.filter(item => {
+                const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
+                return (
+                    item.matricula.toLowerCase().includes(matricula) &&
+                    item.coletor.toLowerCase().includes(coletor) &&
+                    item.turno.toLowerCase().includes(turno) &&
+                    dataFormatada.includes(data)
+                );
+            });
+
             exibirDados(dadosFiltrados);
         }
 
-        carregarDados();
+
+        document.addEventListener('DOMContentLoaded', carregarDados);
     </script>
 </body>
 </html>
