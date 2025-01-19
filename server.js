@@ -9,16 +9,16 @@ const cron = require('node-cron');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+
 app.use(cors({
-    origin: '*', // Em produção, restrinja as origens (ex: 'https://seusite.com')
-    methods: 'GET,POST', // Limita os métodos para maior segurança
-    allowedHeaders: 'Content-Type', // Limita os headers permitidos
+    origin: '*', 
+    methods: 'GET,POST', 
+    allowedHeaders: 'Content-Type', 
 }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração do cliente PostgreSQL
+
 const client = new Client({
     host: process.env.PG_HOST,
     user: process.env.PG_USER,
@@ -26,7 +26,7 @@ const client = new Client({
     database: process.env.PG_DATABASE,
     port: process.env.PG_PORT,
     ssl: {
-      rejectUnauthorized: false // NÃO RECOMENDADO EM PRODUÇÃO!
+      rejectUnauthorized: false 
   }
 });
 
@@ -39,7 +39,7 @@ client.connect(err => {
     }
 });
 
-// Cria tabela se não existir (com tratamento de erro mais robusto)
+
 client.query(`
   CREATE TABLE IF NOT EXISTS coletores (
       id SERIAL PRIMARY KEY,
@@ -60,7 +60,7 @@ client.query(`
 
 
 app.get('/api/coletores', (req, res) => {
-  client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => { // Removido data_expiracao
+  client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => { 
       if (err) {
           console.error('Erro ao consultar coletores:', err);
           return res.status(500).json({ message: 'Erro ao obter dados.' });
@@ -69,21 +69,23 @@ app.get('/api/coletores', (req, res) => {
   });
 });
 app.post('/api/cadastrar', (req, res) => {
-    const { matricula, coletor, turno } = req.body;
-    const data = new Date().toISOString().split('T')[0];
+  const { matricula, coletor, turno } = req.body;
+  const data = new Date().toISOString().split('T')[0];
 
-    client.query(
-        `INSERT INTO coletores (matricula, coletor, turno, data) VALUES ($1, $2, $3, $4)
-        ON CONFLICT (coletor) DO UPDATE SET matricula = $1, turno = $3, data = $4`,
-        [matricula, coletor, turno, data],
-        (err) => {
-            if (err) {
-                console.error('Erro ao cadastrar coletor:', err);
-                return res.status(500).json({ message: 'Erro ao cadastrar.' });
-            }
-            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
-        }
-    );
+  client.query(
+      `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`, 
+      [matricula, coletor, turno, data],
+      (err) => {
+          if (err) {
+              if (err.constraint === 'coletores_coletor_key') { 
+                  return res.status(409).json({ message: 'Este coletor já está cadastrado.' }); 
+              }
+              console.error('Erro ao cadastrar coletor:', err);
+              return res.status(500).json({ message: 'Erro ao cadastrar.' });
+          }
+          res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+      }
+  );
 });
 
 app.post('/api/devolver', async (req, res) => {
@@ -111,7 +113,7 @@ app.post('/api/devolver', async (req, res) => {
 });
 
 
-// Limpeza do banco de dados (cron) - MANTIDA
+
 async function limparBancoDeDados() {
   try {
       const result = await client.query(
@@ -123,11 +125,11 @@ async function limparBancoDeDados() {
   }
 }
 
-// Executa a limpeza diariamente à meia-noite (00:00)
+
 cron.schedule('0 0 * * *', limparBancoDeDados);
 
-// Executa a limpeza na inicialização do servidor
+
 limparBancoDeDados();
 
-// Inicia o servidor
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

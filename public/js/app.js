@@ -7,15 +7,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const devolucaoSection = document.getElementById('devolucaoSection');
     const devolucaoTitle = document.getElementById('devolucaoTitle');
 
-    // Inicialmente oculta a seção de devolução
+   
     devolucaoSection.style.display = 'none';
 
-    // Forçar entrada em maiúsculas
+ 
     document.getElementById('matricula').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
     document.getElementById('coletor').addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
     devolucaoInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
 
-    // Mostrar/Esconder seção de devolução
+    
     devolucaoTitle.addEventListener('click', () => {
         devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
     });
@@ -38,14 +38,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ matricula, coletor, turno }),
             });
-            if (!response.ok) {
+    
+            if (response.status === 409) {  
                 const errorData = await response.json();
-                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar.`);
+                throw new Error(errorData.message || 'Este coletor já está cadastrado.'); 
+            } else if (!response.ok) { 
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar.`); 
             }
-            return response.json(); // Retorna os dados do JSON
+    
+            return response.json(); 
         } catch (error) {
             console.error('Erro no cadastro:', error);
-            throw error;
+            throw error; 
         }
     }
 
@@ -60,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const errorData = await response.json();
                 throw new Error(errorData.message || `Erro ${response.status} ao devolver.`);
             }
-            return response.json();// Retorna os dados do JSON
+            return response.json();
         } catch (error) {
             console.error('Erro na devolução:', error);
             throw error;

@@ -16,7 +16,7 @@
         <img class="img" src="img/GPA.png" alt="Logo">
         <h3>Dashboard de Cadastros</h3>
     </header>
-    
+
     <a href="index.html"><button>Voltar</button></a>
     <button onclick="carregarDados()">Atualizar Dados</button>
 
@@ -67,15 +67,15 @@
 
     dataTable.innerHTML = dados.map(item => {
         const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-        let status = item.status.trim().toLowerCase(); // Mantém o trim e toLowerCase para consistência
+        let status = item.status.trim().toLowerCase(); 
         let statusClass;
 
         if (status === 'pendente') {
             statusClass = 'status-pendente';
-            status = "Pendente"; // Capitaliza para "Pendente"
+            status = "Pendente"; 
         } else if (status === 'devolvido') {
             statusClass = 'status-devolvido';
-            status = "Devolvido"; // Capitaliza para "Devolvido"
+            status = "Devolvido"; 
         } else {
             statusClass = '';
         }
