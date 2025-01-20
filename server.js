@@ -73,15 +73,12 @@ app.post('/api/cadastrar', (req, res) => {
   const data = new Date().toISOString().split('T')[0];
 
   client.query(
-      `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`, 
+      `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`, // Insere SEMPRE um novo registro com status Pendente
       [matricula, coletor, turno, data],
       (err) => {
           if (err) {
-              if (err.constraint === 'coletores_coletor_key') { 
-                  return res.status(409).json({ message: 'Este coletor já está cadastrado.' }); 
-              }
               console.error('Erro ao cadastrar coletor:', err);
-              return res.status(500).json({ message: 'Erro ao cadastrar.' });
+              return res.status(500).json({ message: 'Erro ao cadastrar.' }); // Trata erros genéricos
           }
           res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
       }
