@@ -9,15 +9,13 @@ const cron = require('node-cron');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-
 app.use(cors({
-    origin: '*', 
-    methods: 'GET,POST', 
-    allowedHeaders: 'Content-Type', 
+    origin: '*',
+    methods: 'GET,POST',
+    allowedHeaders: 'Content-Type',
 }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 const client = new Client({
     host: process.env.PG_HOST,
@@ -26,8 +24,8 @@ const client = new Client({
     database: process.env.PG_DATABASE,
     port: process.env.PG_PORT,
     ssl: {
-      rejectUnauthorized: false 
-  }
+        rejectUnauthorized: false
+    }
 });
 
 client.connect(err => {
@@ -39,94 +37,110 @@ client.connect(err => {
     }
 });
 
-
+// REMOVIDO o UNIQUE da coluna coletor na criação da tabela
 client.query(`
-  CREATE TABLE IF NOT EXISTS coletores (
-      id SERIAL PRIMARY KEY,
-      matricula VARCHAR(255) NOT NULL,
-      coletor VARCHAR(255) NOT NULL UNIQUE,
-      turno VARCHAR(255) NOT NULL,
-      data DATE NOT NULL,
-      status VARCHAR(255) DEFAULT 'Pendente',
-      data_expiracao TIMESTAMP
-  );
+    CREATE TABLE IF NOT EXISTS coletores (
+        id SERIAL PRIMARY KEY,
+        matricula VARCHAR(255) NOT NULL,
+        coletor VARCHAR(255) NOT NULL,
+        turno VARCHAR(255) NOT NULL,
+        data DATE NOT NULL,
+        status VARCHAR(255) DEFAULT 'Pendente',
+        data_expiracao TIMESTAMP
+    );
 `, (err, res) => {
-  if (err) {
-      console.error('Erro ao criar/verificar tabela:', err);
-  } else {
-      console.log('Tabela "coletores" pronta.');
-  }
+    if (err) {
+        console.error('Erro ao criar/verificar tabela:', err);
+    } else {
+        console.log('Tabela "coletores" pronta.');
+    }
 });
-
 
 app.get('/api/coletores', (req, res) => {
-  client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => { 
-      if (err) {
-          console.error('Erro ao consultar coletores:', err);
-          return res.status(500).json({ message: 'Erro ao obter dados.' });
-      }
-      res.json(result.rows);
-  });
+    client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => {
+        if (err) {
+            console.error('Erro ao consultar coletores:', err);
+            return res.status(500).json({ message: 'Erro ao obter dados.' });
+        }
+        res.json(result.rows);
+    });
 });
-app.post('/api/cadastrar', (req, res) => {
-  const { matricula, coletor, turno } = req.body;
-  const data = new Date().toISOString().split('T')[0];
 
-  client.query(
-      `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`, // Insere SEMPRE um novo registro com status Pendente
-      [matricula, coletor, turno, data],
-      (err) => {
-          if (err) {
-              console.error('Erro ao cadastrar coletor:', err);
-              return res.status(500).json({ message: 'Erro ao cadastrar.' }); // Trata erros genéricos
-          }
-          res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
-      }
-  );
+// ROTA /api/cadastrar SIMPLIFICADA (sem verificação de duplicidade)
+app.post('/api/cadastrar', (req, res) => {
+    const { matricula, coletor, turno } = req.body;
+    const data = new Date().toISOString().split('T')[0];
+
+    console.log("Dados recebidos para cadastro:", { matricula, coletor, turno, data }); // Log ANTES da query
+
+    client.query(
+        `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`,
+        [matricula, coletor, turno, data],
+        (err, result) => {
+            if (err) {
+                console.error('ERRO na query de cadastro:', err); // Log de erro DETALHADO
+                return res.status(500).json({ message: 'Erro ao cadastrar.' });
+            }
+
+            console.log("Resultado da query de cadastro:", result); // Log APÓS a query
+            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+        }
+    );
 });
 
 app.post('/api/devolver', async (req, res) => {
-  const { coletor } = req.body;
+    const { coletor } = req.body;
 
-  if (!coletor) {
-      return res.status(400).json({ message: 'Campo coletor é obrigatório.' });
-  }
+    if (!coletor) {
+        return res.status(400).json({ message: 'Campo coletor é obrigatório.' });
+    }
 
-  try {
-      const result = await client.query(
-          `UPDATE coletores SET status = 'Devolvido', data_expiracao = NOW() + INTERVAL '4 days' WHERE coletor = $1`,
-          [coletor]
-      );
+    try {
+        const result = await client.query(
+            `UPDATE coletores SET status = 'Devolvido', data_expiracao = NOW() + INTERVAL '4 days' WHERE coletor = $1`,
+            [coletor]
+        );
 
-      if (result.rowCount === 0) {
-          return res.status(404).json({ message: `Coletor "${coletor}" não encontrado.` });
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: `Coletor "${coletor}" não encontrado.` });
+        }
+
+        res.json({ message: 'Coletor devolvido com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao devolver coletor:', error);
+        res.status(500).json({ message: 'Erro ao devolver.' });
+    }
+});
+
+app.get('/api/contagens', (req, res) => {
+  client.query(`
+      SELECT
+          COUNT(DISTINCT CASE WHEN coletor LIKE 'Z%' AND status = 'Pendente' THEN coletor END) AS Z,
+          COUNT(DISTINCT CASE WHEN coletor LIKE 'C%' AND status = 'Pendente' THEN coletor END) AS C,
+          COUNT(DISTINCT CASE WHEN coletor LIKE 'T%' AND status = 'Pendente' THEN coletor END) AS T
+      FROM coletores;
+  `, (err, result) => {
+      if (err) {
+          console.error('Erro ao obter contagens:', err);
+          return res.status(500).json({ message: 'Erro ao obter contagens.' });
       }
-
-      res.json({ message: 'Coletor devolvido com sucesso.' });
-  } catch (error) {
-      console.error('Erro ao devolver coletor:', error);
-      res.status(500).json({ message: 'Erro ao devolver.' });
-  }
+      res.json(result.rows[0]);
+  });
 });
 
 
-
 async function limparBancoDeDados() {
-  try {
-      const result = await client.query(
-          `DELETE FROM coletores WHERE status = 'Devolvido' AND data_expiracao <= NOW()`
-      );
-      console.log(`Limpeza: ${result.rowCount} registros excluídos em ${new Date().toLocaleString('pt-BR')}`);
-  } catch (error) {
-      console.error('Erro na limpeza do banco:', error);
-  }
+    try {
+        const result = await client.query(
+            `DELETE FROM coletores WHERE status = 'Devolvido' AND data_expiracao <= NOW()`
+        );
+        console.log(`Limpeza: ${result.rowCount} registros excluídos em ${new Date().toLocaleString('pt-BR')}`);
+    } catch (error) {
+        console.error('Erro na limpeza do banco:', error);
+    }
 }
 
-
 cron.schedule('0 0 * * *', limparBancoDeDados);
-
-
 limparBancoDeDados();
-
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

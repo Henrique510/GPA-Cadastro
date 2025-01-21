@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="css/dash.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
     <style>
-.status-pendente { background-color: red; color: white; }
-.status-devolvido { background-color: green; color: white; }
+        .status-pendente { background-color: red; color: white; }
+        .status-devolvido { background-color: green; color: white; }
     </style>
 </head>
 <body>
@@ -16,6 +16,21 @@
         <img class="img" src="img/GPA.png" alt="Logo">
         <h3>Dashboard de Cadastros</h3>
     </header>
+
+    <div class="contadores">
+        <div class="contador">
+            <span class="titulo-contador">Coletores Zebra Pendentes</span>
+            <span id="contador-z">0</span>
+        </div>
+        <div class="contador">
+            <span class="titulo-contador">Coletores Motorola Pendentes</span>
+            <span id="contador-c">0</span>
+        </div>
+        <div class="contador">
+            <span class="titulo-contador">Talkmans Pendentes</span>
+            <span id="contador-t">0</span>
+        </div>
+    </div>
 
     <a href="index.html"><button>Voltar</button></a>
     <button onclick="carregarDados()">Atualizar Dados</button>
@@ -25,6 +40,11 @@
         <input type="text" id="filtroColetor" placeholder="Filtrar por Coletor">
         <input type="text" id="filtroTurno" placeholder="Filtrar por Turno">
         <input type="text" id="filtroData" placeholder="Filtrar por Data">
+        <select id="filtroStatus">
+            <option value="">Todos os Status</option>
+            <option value="pendente">Pendente</option>
+            <option value="devolvido">Devolvido</option>
+        </select>
         <button onclick="filtrarDados()">Filtrar</button>
     </div>
 
@@ -43,6 +63,7 @@
 
     <script>
         let dados = [];
+        let exibirDadosOriginal = null; // Variável para armazenar a função original
 
         async function carregarDados() {
             try {
@@ -52,6 +73,7 @@
                 }
                 dados = await response.json();
                 exibirDados(dados);
+                await atualizarContadores(); // Aguarda a atualização dos contadores
             } catch (error) {
                 console.error('Erro ao carregar os dados:', error);
                 alert(error.message || "Erro desconhecido ao carregar os dados.");
@@ -59,63 +81,86 @@
         }
 
         function exibirDados(dados) {
-    const dataTable = document.getElementById('dataTable');
-    if (!dataTable) {
-        console.error("Elemento 'dataTable' não encontrado!");
-        return;
-    }
+            const dataTable = document.getElementById('dataTable');
+            if (!dataTable) {
+                console.error("Elemento 'dataTable' não encontrado!");
+                return;
+            }
 
-    dataTable.innerHTML = dados.map(item => {
-        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-        let status = item.status.trim().toLowerCase(); 
-        let statusClass;
+            dataTable.innerHTML = dados.map(item => {
+                const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
+                let status = item.status.trim().toLowerCase();
+                let statusClass;
 
-        if (status === 'pendente') {
-            statusClass = 'status-pendente';
-            status = "Pendente"; 
-        } else if (status === 'devolvido') {
-            statusClass = 'status-devolvido';
-            status = "Devolvido"; 
-        } else {
-            statusClass = '';
+                if (status === 'pendente') {
+                    statusClass = 'status-pendente';
+                    status = "Pendente";
+                } else if (status === 'devolvido') {
+                    statusClass = 'status-devolvido';
+                    status = "Devolvido";
+                } else {
+                    statusClass = '';
+                }
+
+                return `<tr>
+                    <td>${item.matricula}</td>
+                    <td>${item.coletor}</td>
+                    <td>${item.turno}</td>
+                    <td>${dataFormatada}</td>
+                    <td class="${statusClass}">${status}</td>
+                </tr>`;
+            }).join('');
         }
 
-        return `<tr>
-            <td>${item.matricula}</td>
-            <td>${item.coletor}</td>
-            <td>${item.turno}</td>
-            <td>${dataFormatada}</td>
-            <td class="${statusClass}">${status}
-        </tr>`;
-    }).join('');
+        async function atualizarContadores() {
+            try {
+                const response = await fetch('/api/contagens');
+                if (!response.ok) {
+                    throw new Error(`Erro ao obter contagens: ${response.status}`);
+                }
+                const contagens = await response.json();
+
+                document.getElementById('contador-z').textContent = contagens.z || 0;
+                document.getElementById('contador-c').textContent = contagens.c || 0;
+                document.getElementById('contador-t').textContent = contagens.t || 0;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+function filtrarDados() {
+    const matriculaInput = document.getElementById('filtroMatricula');
+    const coletorInput = document.getElementById('filtroColetor');
+    const turnoInput = document.getElementById('filtroTurno');
+    const dataInput = document.getElementById('filtroData');
+    const statusInput = document.getElementById('filtroStatus');
+
+    const matricula = matriculaInput.value.toLowerCase();
+    const coletor = coletorInput.value.toLowerCase();
+    const turno = turnoInput.value.toLowerCase();
+    const data = dataInput.value;
+    const status = statusInput.value.toLowerCase(); // Move para cá
+
+    const dadosFiltrados = dados.filter(item => { // APENAS UMA DECLARAÇÃO DE dadosFiltrados
+        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
+        const itemStatus = item.status.trim().toLowerCase();
+
+        return (
+            item.matricula.toLowerCase().includes(matricula) &&
+            item.coletor.toLowerCase().includes(coletor) &&
+            item.turno.toLowerCase().includes(turno) &&
+            dataFormatada.includes(data) &&
+            (status === "" || itemStatus === status) // TODOS os filtros dentro de UM único filter
+        );
+    });
+
+    exibirDados(dadosFiltrados);
+    atualizarContadores();
 }
 
-        function filtrarDados() {
-            const matriculaInput = document.getElementById('filtroMatricula');
-            const coletorInput = document.getElementById('filtroColetor');
-            const turnoInput = document.getElementById('filtroTurno');
-            const dataInput = document.getElementById('filtroData');
-
-            const matricula = matriculaInput.value.toLowerCase();
-            const coletor = coletorInput.value.toLowerCase();
-            const turno = turnoInput.value.toLowerCase();
-            const data = dataInput.value;
-
-            const dadosFiltrados = dados.filter(item => {
-                const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
-                return (
-                    item.matricula.toLowerCase().includes(matricula) &&
-                    item.coletor.toLowerCase().includes(coletor) &&
-                    item.turno.toLowerCase().includes(turno) &&
-                    dataFormatada.includes(data)
-                );
-            });
-
-            exibirDados(dadosFiltrados);
-        }
-
-
+        // Garante que os dados sejam carregados e os contadores atualizados ao carregar a página
         document.addEventListener('DOMContentLoaded', carregarDados);
+
     </script>
 </body>
 </html>

@@ -18,7 +18,7 @@ th, td {
     text-align: left;
 }
 th {
-    background-color: #1E2F4B;
+    background-color: #02253B;
     color: white;
 }
 button {
@@ -39,10 +39,8 @@ a {
 }
 input {
     padding: 10px;
-    margin: 10px 5px;
     border-radius: 5px;
     border: 1px solid #ddd;
-    font-size: 16px;
 }
 #filtros {
     margin-top: 20px;
@@ -62,4 +60,43 @@ header {
     width: 100px;
     padding-right: 50px;
     padding-bottom: 20px;
+}
+.contadores {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.contador { /* Estilos comuns para todos os contadores */
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra suave (opcional) */
+}
+
+/* Degradês azuis diferentes para CADA CONTADOR (CORREÇÃO AQUI!) */
+.contador:nth-child(1) { /* Seleciona o primeiro contador (Z) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+    margin-left: 120px;
+}
+
+.contador:nth-child(2) { /* Seleciona o segundo contador (C) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+}
+
+.contador:nth-child(3) { /* Seleciona o terceiro contador (T) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+    margin-right: 120px;
+}
+
+.titulo-contador {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+#filtroStatus{
+    padding: 10px;
+    border-radius: 5px;
+    color: #5c5c5c;
 }
