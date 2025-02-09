@@ -1,27 +1,26 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro e Devolução</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/header.css">
-    <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/geral.css">
 </head>
-<body>
-    <header class="header" style="margin-bottom: 80px; margin-top: 20px;">
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="header">
         <div class="dash">
             <img src="img/GPA.png" alt="Logo GPA">
-            <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Cadastro de Equipamentos</h6>
+            <h2 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Cadastro de Equipamentos</h2>
         </div>
-        <nav style="padding-top: 16px;">
+        <nav>
             <ul>
-                <li class="Selecionado">
+                <li class="flex items-center mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                     Cadastro
-                </li><a href="dashboard.html">
+                </li>
+                <a href="dashboard.html">
                 <li class="flex items-center mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -45,30 +44,5 @@
     </header>
 
 
-    <div class="container">
-        <form id="userForm">
-            <h2>Cadastro</h2>
-            <input type="text" id="matricula" placeholder="Digite a matrícula" required>
-            <input type="text" id="coletor" placeholder="Digite o coletor" required>
-            <select id="turno" required>
-                <option value="" disabled selected>Escolha o turno</option>
-                <option value="Primeiro Turno">1º Turno</option>
-                <option value="Segundo Turno">2º Turno</option>
-                <option value="Terceiro Turno">3º Turno</option>
-                <option value="Quarto Turno">4º Turno</option>
-            </select>
-            <button type="submit">Cadastrar</button>
-        </form>
-        
-
-        <h2 id="devolucaoTitle" style="cursor: pointer; padding-bottom: 10px;">Devolução</h2>
-        <div id="devolucaoSection">
-            <input type="text" id="devolucaoColetor" placeholder="Digite o coletor para devolver">
-            <button id="devolver">Devolver</button>
-        </div>
-
-    </div>
-         <h4 style="display: flex; justify-content: center; padding-top: 10xp;">Dev: Henrique Dias</h4>
-    <script src="js/app.js"></script>
 </body>
 </html>
