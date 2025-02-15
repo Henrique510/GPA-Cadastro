@@ -9,14 +9,14 @@
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
 </head>
 <body>
-    <header class="header" style="margin-bottom: 80px; margin-top: 20px;">
+    <header class="header" style="margin-bottom: 80px;">
         <div class="dash">
             <img src="img/GPA.png" alt="Logo GPA">
             <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Cadastro de Equipamentos</h6>
         </div>
         <nav style="padding-top: 16px;">
             <ul>
-                <li class="Selecionado">
+                <li class="flex items-center mb-4 se">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -28,7 +28,7 @@
                     </svg>
                     Histórico
                 </li></a>
-                <li class="flex items-center mb-4">
+               <li class="flex items-center mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
@@ -48,8 +48,11 @@
     <div class="container">
         <form id="userForm">
             <h2>Cadastro</h2>
-            <input type="text" id="matricula" placeholder="Digite a matrícula" required>
-            <input type="text" id="coletor" placeholder="Digite o coletor" required>
+            <input type="text" id="matricula" placeholder="Digite o ID" required style="width: 85%;">
+            <div class="coletor-inputs"> 
+                <input type="text" id="coletor" placeholder="Digite o Coletor" required>
+                <input type="text" id="headset" placeholder="Digite o Headset">
+            </div>
             <select id="turno" required>
                 <option value="" disabled selected>Escolha o turno</option>
                 <option value="Primeiro Turno">1º Turno</option>
@@ -66,9 +69,40 @@
             <input type="text" id="devolucaoColetor" placeholder="Digite o coletor para devolver">
             <button id="devolver">Devolver</button>
         </div>
-
+        <button id="btnAdicionarUsuario" class="btn-adicionar-usuario" style="display: none;">
+            Adicionar Usuário
+        </button>
+        
+        <div id="modalCadastro" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Cadastrar Colaborador</h2>
+            <form>
+                <input type="text" id="matricula" placeholder="Digite o ID" required>
+                <input type="text" id="coletor" placeholder="Digite o Nome" required>
+                <select id="turno" required>
+                    <option value="" disabled selected>Escolha o turno</option>
+                    <option value="Primeiro Turno">1º Turno</option>
+                    <option value="Segundo Turno">2º Turno</option>
+                    <option value="Terceiro Turno">3º Turno</option>
+                    <option value="Quarto Turno">4º Turno</option>
+                </select>
+                <select id="Setor" required>
+                    <option value="" disabled selected>Escolha o setor</option>
+                    <option value="Recebimento">Recebimento</option>
+                    <option value="Armazenagem">Armazenagem</option>
+                    <option value="Separação">Separação</option>
+                    <option value="Expedição">Expedição</option>
+                    <option value="Gerencia">Gerencia</option>
+                    <option value="Outro">Outro</option>
+                </select>
+        
+              <button type="submit">Cadastrar</button>
+            </form>
+          </div>
+        </div>
     </div>
-         <h4 style="display: flex; justify-content: center; padding-top: 10xp;">Dev: Henrique Dias</h4>
+         <h3 style="display: flex; justify-content: center; padding-top: 20px;">Dev: Henrique Dias</h3>
     <script src="js/app.js"></script>
 </body>
 </html>

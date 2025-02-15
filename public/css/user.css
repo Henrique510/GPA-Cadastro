@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #02253B;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+.container {
+    display: flex; /* Ativa o Flexbox */
+    justify-content: space-around; /* Espaçamento entre as tabelas */
+    align-items: flex-start; /* Alinha as tabelas no topo */
+    width: 100%; /* Ocupa toda a largura disponível */
+}
+
+table {
+    width: 40%; /* Largura de cada tabela (ajuste conforme necessário) */
+    border-collapse: collapse;
+    background-color: white;
+    color: black;
+    font-size: 13px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #02253B;
+    color: white;
+}
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    background-color: #02253B;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #7135A1;
+}
+a {
+    text-decoration: none;
+}
+input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+#filtros {
+    margin-top: 20px;
+}
+header {
+    background-color: transparent;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 34px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.img {
+    width: 100px;
+    padding-right: 50px;
+    padding-bottom: 20px;
+}
+.contadores {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.contador { /* Estilos comuns para todos os contadores */
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra suave (opcional) */
+}
+
+/* Degradês azuis diferentes para CADA CONTADOR (CORREÇÃO AQUI!) */
+.contador:nth-child(1) { /* Seleciona o primeiro contador (Z) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+    margin-left: 120px;
+}
+
+.contador:nth-child(2) { /* Seleciona o segundo contador (C) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+}
+
+.contador:nth-child(3) { /* Seleciona o terceiro contador (T) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+    margin-right: 120px;
+}
+
+.titulo-contador {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+}
+#filtroStatus{
+    padding: 10px;
+    border-radius: 5px;
+    color: #5c5c5c;
+}

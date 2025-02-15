@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+    <style>
+        .status-pendente { background-color: red; color: white; }
+        .status-devolvido { background-color: green; color: white; }
+    </style>
+</head>
+<header class="header" style="margin-bottom: 80px;">
+    <div class="dash">
+        <img src="img/GPA.png" alt="Logo GPA">
+        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Histórico</h6>
+    </div>
+    <nav style="padding-top: 16px;">
+        <ul>
+           <a href="index.html"><li class="">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                Cadastro
+            </li></a>
+            <a href="dashboard.html"><li class="">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Histórico
+            </li></a>
+            <li class="Selecionado">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Usuários
+            </li>
+            <li class="flex items-center mb-4">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16m10-16v16"></path>
+                </svg>
+                Coletores
+            </li>
+        </ul>
+    </nav>
+</header>
+<body>
+    
+    <div class="contadores">
+        <div class="contador">
+            <span class="titulo-contador">Colaboradores Cadastrados</span>
+            <span id="contador-z">0</span>
+        </div>
+        <div class="contador">
+            <span class="titulo-contador">Coletores Motorola Pendentes</span>
+            <span id="contador-c">0</span>
+        </div>
+        <div class="contador">
+            <span class="titulo-contador">Talkmans Pendentes</span>
+            <span id="contador-t">0</span>
+        </div>
+    </div>
+
+    <a href="index.html"><button>Voltar</button></a>
+    <button onclick="carregarDados()">Atualizar Dados</button>
+    <section>
+    <div id="filtros">
+        <input type="text" id="filtroMatricula" placeholder="Filtrar por Matrícula">
+        <input type="text" id="filtroColetor" placeholder="Filtrar por Nome">
+
+        <button onclick="filtrarDados()">Filtrar</button>
+    </div>
+</section>
+    <section class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Turno</th>
+                    <th>Setor</th>
+                    <th>Encarregado</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable1">
+                <tr>
+                    <td>5571499</td>
+                    <td>HENRIQUE DIAS</td>
+                    <td>Primeiro Turno</td>
+                    <td>Radiofrequencia</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>5446902</td>
+                    <td>DANIEL MENEZES</td>
+                    <td>Primeiro Turno</td>
+                    <td>Separação</td>
+                    <td></td>
+                </tr>
+            </tbody> 
+        </table>
+    
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Turno</th>
+                    <th>Setor</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable2">
+                <tr>
+                    <td>1213456</td>
+                    <td>Vinicius Alves</td>
+                    <td>Primeiro Turno</td>
+                    <td>Radiofrequencia</td>
+                </tr>
+                <tr>
+                    <td>456789</td>
+                    <td>Walter Rodrigues</td>
+                    <td>Primeiro Turno</td>
+                    <td>Separação</td>
+                </tr>
+            </tbody> 
+        </table>
+    </section>
+
+    <script>
+        const tabela1 = document.getElementById("dataTable1");
+const tabela2 = document.getElementById("dataTable2");
+
+// Função para encontrar o encarregado
+function encontrarEncarregado(turno, setor) {
+    const linhasTabela2 = tabela2.querySelectorAll("tr"); // Obtém todas as linhas da tabela 2
+
+    for (let i = 0; i < linhasTabela2.length; i++) { // Itera sobre as linhas
+        const linha = linhasTabela2[i];
+        const turnoTabela2 = linha.cells[2].textContent;
+        const setorTabela2 = linha.cells[3].textContent;
+
+        if (turno === turnoTabela2 && setor === setorTabela2) {
+            return linha.cells[1].textContent; // Retorna o nome do encarregado
+        }
+    }
+    return ""; // Retorna vazio se não encontrar
+}
+
+
+// Atualiza a tabela 1 automaticamente
+function atualizarTabela1() {
+    const linhasTabela1 = tabela1.querySelectorAll("tr");
+    linhasTabela1.forEach(row => {
+        const turno = row.cells[2].textContent;
+        const setor = row.cells[3].textContent;
+        const encarregado = encontrarEncarregado(turno, setor);
+        row.cells[4].textContent = encarregado;
+    });
+}
+
+// Chama a função para atualizar a tabela 1 quando a página carrega
+atualizarTabela1();
+    </script>
+</body>
+</html>
