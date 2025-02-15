@@ -68,21 +68,21 @@ app.get('/api/coletores', (req, res) => {
 
 // ROTA /api/cadastrar SIMPLIFICADA (sem verificação de duplicidade)
 app.post('/api/cadastrar', (req, res) => {
-    const { matricula, coletor, turno } = req.body;
+    const { matricula, coletor, turno, headset } = req.body; // Adicione headset aqui
     const data = new Date().toISOString().split('T')[0];
 
-    console.log("Dados recebidos para cadastro:", { matricula, coletor, turno, data }); // Log ANTES da query
+    console.log("Dados recebidos para cadastro:", { matricula, coletor, turno, data, headset });
 
     client.query(
-        `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`,
-        [matricula, coletor, turno, data],
+        `INSERT INTO coletores (matricula, coletor, turno, data, status, headset) VALUES ($1, $2, $3, $4, 'Pendente', $5)`, // Inclua headset na query
+        [matricula, coletor, turno, data, headset], // Adicione headset aos parâmetros
         (err, result) => {
             if (err) {
-                console.error('ERRO na query de cadastro:', err); // Log de erro DETALHADO
+                console.error('ERRO na query de cadastro:', err);
                 return res.status(500).json({ message: 'Erro ao cadastrar.' });
             }
 
-            console.log("Resultado da query de cadastro:", result); // Log APÓS a query
+            console.log("Resultado da query de cadastro:", result);
             res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
         }
     );
