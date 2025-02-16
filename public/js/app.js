@@ -156,12 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
             showMessage('Informe o coletor para devolução!', 'error');
             return;
         }
-
         try {
             const data = await devolveCollector(coletor);
             devolucaoInput.value = '';
-            showMessage(data.message || 'Coletor devolvido com sucesso!');
-            window.location.href = 'dashboard.html';
+            console.log('Devolução do coletor realizada com sucesso!');
         } catch (error) {
             showMessage(error.message, 'error');
         }

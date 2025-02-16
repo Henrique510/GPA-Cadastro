@@ -142,7 +142,7 @@ app.post('/api/devolver', async (req, res) => {
             return res.status(404).json({ message: `Coletor "${coletor}" não encontrado.` });
         }
 
-        res.json({ message: '' });
+        res.json({});
     } catch (error) {
         console.error('Erro ao devolver coletor:', error);
         res.status(500).json({ message: 'Erro ao devolver.' });
