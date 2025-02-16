@@ -57,7 +57,10 @@ client.query(`
 });
 
 app.get('/api/coletores', (req, res) => {
-    client.query('SELECT matricula, coletor, turno, data, status FROM coletores', (err, result) => {
+    client.query(`
+        SELECT c.matricula, c.coletor, c.turno, c.data, c.status, h.headset 
+        FROM coletores c
+        LEFT JOIN headsets h ON c.matricula = h.matricula`, (err, result) => { // Use LEFT JOIN para incluir coletores mesmo sem headset
         if (err) {
             console.error('Erro ao consultar coletores:', err);
             return res.status(500).json({ message: 'Erro ao obter dados.' });
@@ -65,6 +68,7 @@ app.get('/api/coletores', (req, res) => {
         res.json(result.rows);
     });
 });
+
 
 // ROTA /api/cadastrar SIMPLIFICADA (sem verificação de duplicidade)
 app.post('/api/cadastrar', (req, res) => {
