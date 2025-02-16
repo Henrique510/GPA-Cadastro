@@ -58,14 +58,25 @@ client.query(`
 
 app.get('/api/coletores', (req, res) => {
     client.query(`
-        SELECT c.matricula, c.coletor, c.turno, c.data, c.status, h.headset 
+        SELECT c.matricula, c.coletor, c.turno, c.data, c.status
         FROM coletores c
-        LEFT JOIN headsets h ON c.matricula = h.matricula`, (err, result) => { // Use LEFT JOIN para incluir coletores mesmo sem headset
+        UNION ALL
+        SELECT h.matricula, NULL as coletor, NULL as turno, h.data, NULL as status, h.headset
+        FROM headsets h`, (err, result) => {
         if (err) {
             console.error('Erro ao consultar coletores:', err);
             return res.status(500).json({ message: 'Erro ao obter dados.' });
         }
-        res.json(result.rows);
+
+        const dadosFormatados = result.rows.map(row => ({
+            matricula: row.matricula,
+            coletor: row.coletor || row.headset, // Exibe o coletor ou o headset
+            turno: row.turno,
+            data: row.data,
+            status: row.status ? 'Pendente' : 'Devolvido' // Adapta o status conforme necessário
+        }));
+
+        res.json(dadosFormatados);
     });
 });
 
