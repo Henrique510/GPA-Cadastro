@@ -134,13 +134,12 @@
                 }
 
                 return `<tr>
-                    <td>${item.matricula}</td>
-                    <td>${item.coletor}</td>
-                    <td>${item.turno}</td>
-                    <td>${dataFormatada}</td>
-                    <td class="${statusClass}">${status}</td>
-                </tr>`;
-            }).join('');
+            <td>${item.matricula}</td>
+            <td>${item.coletor} ${item.headset ? `(${item.headset})` : ''}</td> <td>${item.turno}</td>
+            <td>${dataFormatada}</td>
+            <td class="${statusClass}">${status}</td>
+        </tr>`;
+    }).join('');
         }
 
         async function atualizarContadores() {

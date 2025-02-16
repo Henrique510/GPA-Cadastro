@@ -92,17 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const coletorData = await registerCollector(matricula, coletor, turno);
-            showMessage(coletorData.message || 'Coletor cadastrado com sucesso!');
         } catch (error) {
             showMessage(error.message, 'error');
-            return; // Importante: Pare a execução se o cadastro do coletor falhar
+            return;
         }
-    
-        // Cadastra o headset (se houver valor) - MOVIDO PARA FORA DO BLOCO TRY...CATCH
+        
         if (headset) {
             try {
                 const headsetData = await registerHeadset(matricula, headset);
-                showMessage(headsetData.message || 'Headset cadastrado com sucesso!');
             } catch (error) {
                 showMessage(error.message, 'error');
             }
