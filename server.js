@@ -79,11 +79,44 @@ app.post('/api/cadastrar', (req, res) => {
         (err, result) => {
             if (err) {
                 console.error('ERRO na query de cadastro:', err);
-                return res.status(500).json({ message: 'Erro ao cadastrar.' });
+                res.status(500).json({ message: `Erro ao cadastrar: ${err.message}` }); // Envia a mensagem de erro detalhada
+                return;
             }
 
             console.log("Resultado da query de cadastro:", result);
             res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+        }
+    );
+});
+app.post('/api/cadastrarColetor', (req, res) => {
+    const { matricula, coletor, turno } = req.body;
+    const data = new Date().toISOString().split('T')[0];
+
+    client.query(
+        `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`,
+        [matricula, coletor, turno, data],
+        (err, result) => {
+            if (err) {
+                console.error('Erro na query de cadastro de coletor:', err);
+                return res.status(500).json({ message: 'Erro ao cadastrar coletor.' });
+            }
+            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+        }
+    );
+});
+
+app.post('/api/cadastrarHeadset', (req, res) => {
+    const { matricula, headset } = req.body;
+
+    client.query(
+        `INSERT INTO headsets (matricula, headset, data) VALUES ($1, $2, $3)`, // Tabela separada para headsets
+        [matricula, headset, new Date().toISOString().split('T')[0]],
+        (err, result) => {
+            if (err) {
+                console.error('Erro na query de cadastro de headset:', err);
+                return res.status(500).json({ message: 'Erro ao cadastrar headset.' });
+            }
+            res.status(201).json({ message: 'Headset cadastrado com sucesso.' });
         }
     );
 });

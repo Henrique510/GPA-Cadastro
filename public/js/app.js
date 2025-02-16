@@ -85,21 +85,73 @@ document.addEventListener("DOMContentLoaded", () => {
         const headset = headsetInput ? headsetInput.value.trim() : '';
         const turno = turnoSelect.value;
 
-        if (!matricula || !coletor) { 
+        if (!matricula || !coletor) {
             showMessage('Preencha os campos obrigatórios (Matrícula e Coletor).', 'error');
-            return; 
+            return;
         }
 
         try {
-            const data = await registerCollector(matricula, coletor, turno, headset); 
-            matriculaInput.value = ''; 
-            coletorInput.value = ''; 
-            if (headsetInput) headsetInput.value = ''; 
-            showMessage(data.message || 'Coletor cadastrado com sucesso!'); 
-        } catch (error) { 
+            const coletorData = await registerCollector(matricula, coletor, turno);
+            showMessage(coletorData.message || 'Coletor cadastrado com sucesso!');
+        } catch (error) {
             showMessage(error.message, 'error');
+            return; // Importante: Pare a execução se o cadastro do coletor falhar
         }
+    
+        // Cadastra o headset (se houver valor) - MOVIDO PARA FORA DO BLOCO TRY...CATCH
+        if (headset) {
+            try {
+                const headsetData = await registerHeadset(matricula, headset);
+                showMessage(headsetData.message || 'Headset cadastrado com sucesso!');
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+    
+        matriculaInput.value = '';
+        coletorInput.value = '';
+        if (headsetInput) headsetInput.value = '';
     });
+
+    async function registerCollector(matricula, coletor, turno) {
+        try {
+            const response = await fetch(`${API_URL}/cadastrarColetor`, { // Rota específica para coletor
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricula, coletor, turno }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar coletor.`);
+            }
+
+            return response.json();
+        } catch (error) {
+            console.error('Erro no cadastro de coletor:', error);
+            throw error;
+        }
+    }
+
+    async function registerHeadset(matricula, headset) {
+        try {
+            const response = await fetch(`${API_URL}/cadastrarHeadset`, { // Rota específica para headset
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricula, headset }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar headset.`);
+            }
+
+            return response.json();
+        } catch (error) {
+            console.error('Erro no cadastro de headset:', error);
+            throw error;
+        }
+    }
 
     devolverButton.addEventListener('click', async () => {
         const coletor = devolucaoInput.value.trim();
