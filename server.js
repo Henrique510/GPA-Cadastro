@@ -58,25 +58,14 @@ client.query(`
 
 app.get('/api/coletores', (req, res) => {
     client.query(`
-        SELECT c.matricula, c.coletor, c.turno, c.data, c.status
+        SELECT c.matricula, c.coletor, c.turno, c.data, c.status, h.headset 
         FROM coletores c
-        UNION ALL
-        SELECT h.matricula, NULL as coletor, NULL as turno, h.data, NULL as status, h.headset
-        FROM headsets h`, (err, result) => {
+        LEFT JOIN headsets h ON c.matricula = h.matricula`, (err, result) => { // Use LEFT JOIN para incluir coletores mesmo sem headset
         if (err) {
             console.error('Erro ao consultar coletores:', err);
             return res.status(500).json({ message: 'Erro ao obter dados.' });
         }
-
-        const dadosFormatados = result.rows.map(row => ({
-            matricula: row.matricula,
-            coletor: row.coletor || row.headset, // Exibe o coletor ou o headset
-            turno: row.turno,
-            data: row.data,
-            status: row.status ? 'Pendente' : 'Devolvido' // Adapta o status conforme necessário
-        }));
-
-        res.json(dadosFormatados);
+        res.json(result.rows);
     });
 });
 
@@ -153,7 +142,7 @@ app.post('/api/devolver', async (req, res) => {
             return res.status(404).json({ message: `Coletor "${coletor}" não encontrado.` });
         }
 
-        res.json({ message: 'Coletor devolvido com sucesso.' });
+        res.json({ message: '' });
     } catch (error) {
         console.error('Erro ao devolver coletor:', error);
         res.status(500).json({ message: 'Erro ao devolver.' });
