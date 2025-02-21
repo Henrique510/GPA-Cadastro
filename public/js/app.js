@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = 'https://gpa-cadastro.onrender.com/api';
+    const API_URL = 'http://localhost:3001/api';
     const userForm = document.getElementById('userForm');
     const coletorInput = document.getElementById('coletor');
     const headsetInput = document.getElementById('headset');

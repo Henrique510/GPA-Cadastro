@@ -15,7 +15,7 @@
 <header class="header" style="margin-bottom: 80px;">
     <div class="dash">
         <img src="img/GPA.png" alt="Logo GPA">
-        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Histórico</h6>
+        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Controle de Equipamentos</h6>
     </div>
     <nav style="padding-top: 16px;">
         <ul>
@@ -24,24 +24,24 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                 </svg>
                 Cadastro
-            </li></a>
-            <li class="Selecionado">
+            </li></a><a href="dashboard.html">
+            <li class="flex items-center mb-4">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
                 Histórico
-            </li><a href="Usuario.html">
+            </li></a><a href="Usuario.html">
             <li class="flex items-center mb-4">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
                 Usuários
             </li></a>
-            <li class="flex items-center mb-4">
+            <li class="Selecionado">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16m10-16v16"></path>
                 </svg>
-                Coletores
+                Equipamentos
             </li>
         </ul>
     </nav>
@@ -50,11 +50,11 @@
     
     <div class="contadores">
         <div class="contador">
-            <span class="titulo-contador">Coletores Zebra Pendentes</span>
+            <span class="titulo-contador">Coletores Cadastrados</span>
             <span id="contador-z">0</span>
         </div>
         <div class="contador">
-            <span class="titulo-contador">Coletores Motorola Pendentes</span>
+            <span class="titulo-contador">Coletores Quebrados</span>
             <span id="contador-c">0</span>
         </div>
         <div class="contador">
@@ -67,14 +67,14 @@
     <button onclick="carregarDados()">Atualizar Dados</button>
 
     <div id="filtros">
-        <input type="text" id="filtroMatricula" placeholder="Filtrar por Matrícula">
-        <input type="text" id="filtroColetor" placeholder="Filtrar por Coletor">
-        <input type="text" id="filtroTurno" placeholder="Filtrar por Turno">
-        <input type="text" id="filtroData" placeholder="Filtrar por Data">
+        <input type="text" id="filtroMatricula" placeholder="Filtrar por ID">
+        <input type="text" id="filtroColetor" placeholder="Filtrar por Identificador">
+        <input type="text" id="filtroTurno" placeholder="Filtrar por Patrimônio">
+        <input type="text" id="filtroData" placeholder="Filtrar por Número">
         <select id="filtroStatus">
-            <option value="">Todos os Status</option>
-            <option value="pendente">Pendente</option>
-            <option value="devolvido">Devolvido</option>
+            <option value="">Condição</option>
+            <option value="pendente">Operando</option>
+            <option value="devolvido">Quebrado</option>
         </select>
         <button onclick="filtrarDados()">Filtrar</button>
     </div>
@@ -82,11 +82,11 @@
     <table>
         <thead>
             <tr>
-                <th>Matrícula</th>
-                <th>Coletor</th>
-                <th>Turno</th>
-                <th>Data Cadastro</th>
-                <th>Status</th>
+                <th>ID Pulsus</th>
+                <th>Identificador</th>
+                <th>Patrimônio</th>
+                <th>Número</th>
+                <th>Condição</th>
             </tr>
         </thead>
         <tbody id="dataTable"></tbody>
