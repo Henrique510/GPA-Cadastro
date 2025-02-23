@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="css/dash.css">
     <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/col.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
-    <style>
-        .status-pendente { background-color: red; color: white; }
-        .status-devolvido { background-color: green; color: white; }
-    </style>
 </head>
 <header class="header" style="margin-bottom: 80px;">
     <div class="dash">
         <img src="img/GPA.png" alt="Logo GPA">
         <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Controle de Equipamentos</h6>
     </div>
-    <nav style="padding-top: 16px;">
+    <nav style="padding-top: 16px; padding-right: 100px;">
         <ul>
            <a href="index.html"><li class="">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,24 +43,21 @@
     </nav>
 </header>
 <body>
-    
-    <div class="contadores">
-        <div class="contador">
-            <span class="titulo-contador">Coletores Cadastrados</span>
-            <span id="contador-z">0</span>
+    <center>
+        <div class="contadores">
+            <div class="contador">
+                <div class="titulo-contador">Coletores Operando</div>
+                <div class="contador-valor" id="coletor-operando">0</div>
+            </div>
+            <div class="contador">
+                <div class="titulo-contador">Coletores Quebrados</div>
+                <div class="contador-valor" id="coletor-quebrado">0</div>
+            </div>
         </div>
-        <div class="contador">
-            <span class="titulo-contador">Coletores Quebrados</span>
-            <span id="contador-c">0</span>
-        </div>
-        <div class="contador">
-            <span class="titulo-contador">Talkmans Pendentes</span>
-            <span id="contador-t">0</span>
-        </div>
-    </div>
-
+</center>
     <a href="index.html"><button>Voltar</button></a>
     <button onclick="carregarDados()">Atualizar Dados</button>
+    <button onclick="abrirModalCadastro()">Adicionar Coletor</button>
 
     <div id="filtros">
         <input type="text" id="filtroMatricula" placeholder="Filtrar por ID">
@@ -90,115 +83,110 @@
             </tr>
         </thead>
         <tbody id="dataTable1">
-            <tr>
-                <td>4927</td>
-                <td>23143520100991</td>
-                <td>2672935</td>
-                <td>Z01</td>
-                <td>Operando</td>
-            </tr>
         </tbody> 
     </table>
-
+    <div id="modalCadastro" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Cadastrar Equipamento</h2>
+            <form id="formCadastro">
+                <input type="text" id="id_pulsus" placeholder="Digite o ID Pulsus" required>
+    
+                <input type="text" id="identificador" placeholder="Digite o Identificador" required>
+    
+                <input type="text" id="patrimonio" placeholder="Digite o Patrimônio" required>
+    
+                <input type="text" id="numero" placeholder="Digite o Número" required>
+    
+                <select id="condicao" required>
+                    <option value="" disabled selected>Escolha a Condição</option>
+                    <option value="Operando">Operando</option>
+                    <option value="Quebrado">Quebrado</option>
+                </select>
+    
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
     <script>
-        let dados = [];
-        let exibirDadosOriginal = null; // Variável para armazenar a função original
-
-        async function carregarDados() {
-            try {
-                const response = await fetch('/api/coletores');
-                if (!response.ok) {
-                    throw new Error(`Erro ao carregar dados: ${response.status}`);
-                }
-                dados = await response.json();
-                exibirDados(dados);
-                await atualizarContadores(); // Aguarda a atualização dos contadores
-            } catch (error) {
-                console.error('Erro ao carregar os dados:', error);
-                alert(error.message || "Erro desconhecido ao carregar os dados.");
-            }
-        }
-
-        function exibirDados(dados) {
-            const dataTable = document.getElementById('dataTable');
-            if (!dataTable) {
-                console.error("Elemento 'dataTable' não encontrado!");
-                return;
-            }
-
-            dataTable.innerHTML = dados.map(item => {
-                const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-                let status = item.status.trim().toLowerCase();
-                let statusClass;
-
-                if (status === 'pendente') {
-                    statusClass = 'status-pendente';
-                    status = "Pendente";
-                } else if (status === 'devolvido') {
-                    statusClass = 'status-devolvido';
-                    status = "Devolvido";
-                } else {
-                    statusClass = '';
-                }
-
-                return `<tr>
-            <td>${item.matricula}</td>
-            <td>${item.coletor} ${item.headset ? `(${item.headset})` : ''}</td> <td>${item.turno}</td>
-            <td>${dataFormatada}</td>
-            <td class="${statusClass}">${status}</td>
-        </tr>`; // Exibe o coletor e o headset na mesma célula
-    }).join('');
-        }
-
-        async function atualizarContadores() {
-            try {
-                const response = await fetch('/api/contagens');
-                if (!response.ok) {
-                    throw new Error(`Erro ao obter contagens: ${response.status}`);
-                }
-                const contagens = await response.json();
-
-                document.getElementById('contador-z').textContent = contagens.z || 0;
-                document.getElementById('contador-c').textContent = contagens.c || 0;
-                document.getElementById('contador-t').textContent = contagens.t || 0;
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-function filtrarDados() {
-    const matriculaInput = document.getElementById('filtroMatricula');
-    const coletorInput = document.getElementById('filtroColetor');
-    const turnoInput = document.getElementById('filtroTurno');
-    const dataInput = document.getElementById('filtroData');
-    const statusInput = document.getElementById('filtroStatus');
-
-    const matricula = matriculaInput.value.toLowerCase();
-    const coletor = coletorInput.value.toLowerCase();
-    const turno = turnoInput.value.toLowerCase();
-    const data = dataInput.value;
-    const status = statusInput.value.toLowerCase(); // Move para cá
-
-    const dadosFiltrados = dados.filter(item => { // APENAS UMA DECLARAÇÃO DE dadosFiltrados
-        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
-        const itemStatus = item.status.trim().toLowerCase();
-
-        return (
-            item.matricula.toLowerCase().includes(matricula) &&
-            item.coletor.toLowerCase().includes(coletor) &&
-            item.turno.toLowerCase().includes(turno) &&
-            dataFormatada.includes(data) &&
-            (status === "" || itemStatus === status) // TODOS os filtros dentro de UM único filter
-        );
-    });
-
-    exibirDados(dadosFiltrados);
-    atualizarContadores();
+function abrirModalCadastro() {
+    document.getElementById('modalCadastro').style.display = "block";
 }
 
-        // Garante que os dados sejam carregados e os contadores atualizados ao carregar a página
-        document.addEventListener('DOMContentLoaded', carregarDados);
+document.querySelector('.close').onclick = function() {
+    document.getElementById('modalCadastro').style.display = "none";
+};
 
+window.onclick = function(event) {
+    if (event.target == document.getElementById('modalCadastro')) {
+        document.getElementById('modalCadastro').style.display = "none";
+    }
+};
+
+document.getElementById('formCadastro').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const idPulsus = document.getElementById('id_pulsus').value;
+    const identificador = document.getElementById('identificador').value;
+    const patrimonio = document.getElementById('patrimonio').value;
+    const numero = document.getElementById('numero').value;
+    const condicao = document.getElementById('condicao').value;
+
+    try {
+        const response = await fetch('/api/cadastrarEquipamento', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ idPulsus, identificador, patrimonio, numero, condicao })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erro ao cadastrar equipamento: ${response.status}`);
+        }
+
+        document.getElementById('modalCadastro').style.display = "none";
+        carregarDados(); // Recarrega os dados após o cadastro
+    } catch (error) {
+        console.error('Erro ao cadastrar equipamento:', error);
+        alert(error.message || "Erro desconhecido ao cadastrar o equipamento.");
+    }
+});
+
+function exibirDados(dados) {
+    const dataTable = document.getElementById('dataTable1');
+    if (!dataTable) {
+        console.error("Elemento 'dataTable1' não encontrado!");
+        return;
+    }
+
+    dataTable.innerHTML = dados.map(item => {
+        return `<tr>
+            <td>${item.id_pulsus}</td>
+            <td>${item.identificador}</td>
+            <td>${item.patrimonio}</td>
+            <td>${item.numero}</td>
+            <td>${item.condicao}</td>
+        </tr>`;
+    }).join('');
+}
+
+async function carregarDados() {
+    try {
+        const response = await fetch('/api/equipamentos'); // Ajuste o endpoint
+        if (!response.ok) {
+            throw new Error(`Erro ao carregar dados: ${response.status}`);
+        }
+        const dados = await response.json();
+        exibirDados(dados);
+    } catch (error) {
+        console.error('Erro ao carregar os dados:', error);
+        alert(error.message || "Erro desconhecido ao carregar os dados.");
+    }
+}
+
+// Carrega os dados ao carregar a página
+document.addEventListener('DOMContentLoaded', carregarDados);
     </script>
 </body>
 </html>

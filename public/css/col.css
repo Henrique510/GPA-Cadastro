@@ -5,26 +5,18 @@ body {
     text-align: center;
     padding: 20px;
 }
-.container {
-    display: flex; /* Ativa o Flexbox */
-    justify-content: space-around; /* Espaçamento entre as tabelas */
-    align-items: flex-start; /* Alinha as tabelas no topo */
-    width: 100%; /* Ocupa toda a largura disponível */
-}
-
 table {
-    width: 80%; /* Largura de cada tabela (ajuste conforme necessário) */
+    width: 80%;
+    margin: 20px auto;
     border-collapse: collapse;
     background-color: white;
     color: black;
 }
-
 th, td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: left;
 }
-
 th {
     background-color: #02253B;
     color: white;
@@ -52,15 +44,7 @@ input {
 }
 #filtros {
     margin-top: 20px;
-    margin-bottom: 20px;
 }
-#filtros select {
-    padding: 10px;
-    border-radius: 5px;
-    color: #5c5c5c;
-}
-
-
 header {
     background-color: transparent;
     width: 100%;
@@ -81,6 +65,7 @@ header {
     display: flex;
     justify-content: space-around;
     margin-bottom: 20px;
+    width: 50%;
 }
 
 .contador { /* Estilos comuns para todos os contadores */
@@ -96,6 +81,16 @@ header {
     background: linear-gradient(to bottom right, #072c42, #063552);
 }
 
+.contador:nth-child(2) { /* Seleciona o segundo contador (C) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+}
+
+.contador:nth-child(3) { /* Seleciona o terceiro contador (T) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+}
+.contador:nth-child(4) { /* Seleciona o terceiro contador (T) */
+    background: linear-gradient(to bottom right, #072c42, #063552);
+}
 
 .titulo-contador {
     font-weight: bold;
@@ -106,4 +101,60 @@ header {
     padding: 10px;
     border-radius: 5px;
     color: #5c5c5c;
+}
+.modal {
+    display: none; /* Esconder o modal por padrão */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    border-radius: 10px;
+  }
+  .modal input{
+        width: 90%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #02253B;
+    }
+    .modal select{
+        width: 95%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #02253B;
+    }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    margin-top: 120px;
+    border-radius: 10px;
+  }
+  .modal h2 {
+    color: #02253B;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+/* Remove o traço do link */
+a {
+    text-decoration: none;
 }

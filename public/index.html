@@ -9,7 +9,7 @@
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
 </head>
 <body>
-    <header class="header" style="margin-bottom: 80px;">
+    <header class="header" style="margin-bottom: 50px;">
         <div class="dash">
             <img src="img/GPA.png" alt="Logo GPA">
             <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Cadastro de Equipamentos</h6>
@@ -69,37 +69,37 @@
             <input type="text" id="devolucaoColetor" placeholder="Digite o coletor para devolver">
             <button id="devolver">Devolver</button>
         </div>
-        <button id="btnAdicionarUsuario" class="btn-adicionar-usuario" style="display: none;">
+        <button id="btnAdicionarUsuario" class="btn-adicionar-usuario"  >
             Adicionar Usuário
         </button>
         
         <div id="modalCadastro" class="modal">
-          <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Cadastrar Colaborador</h2>
-            <form>
-                <input type="text" id="matricula" placeholder="Digite o ID" required>
-                <input type="text" id="coletor" placeholder="Digite o Nome" required>
-                <select id="turno" required>
-                    <option value="" disabled selected>Escolha o turno</option>
-                    <option value="Primeiro Turno">1º Turno</option>
-                    <option value="Segundo Turno">2º Turno</option>
-                    <option value="Terceiro Turno">3º Turno</option>
-                    <option value="Quarto Turno">4º Turno</option>
-                </select>
-                <select id="Setor" required>
-                    <option value="" disabled selected>Escolha o setor</option>
-                    <option value="Recebimento">Recebimento</option>
-                    <option value="Armazenagem">Armazenagem</option>
-                    <option value="Separação">Separação</option>
-                    <option value="Expedição">Expedição</option>
-                    <option value="Gerencia">Gerencia</option>
-                    <option value="Outro">Outro</option>
-                </select>
-        
-              <button type="submit">Cadastrar</button>
-            </form>
-          </div>
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Cadastrar Colaborador</h2>
+                <form id="colaboradorForm">
+                    <input type="text" id="matriculaColaborador" placeholder="Digite o ID" required>
+                    <input type="text" id="nomeColaborador" placeholder="Digite o Nome" required>
+                    <select id="turnoColaborador" required>
+                        <option value="" disabled selected>Escolha o turno</option>
+                        <option value="Primeiro Turno">1º Turno</option>
+                        <option value="Segundo Turno">2º Turno</option>
+                        <option value="Terceiro Turno">3º Turno</option>
+                        <option value="Quarto Turno">4º Turno</option>
+                    </select>
+                    <select id="setorColaborador" required>
+                        <option value="" disabled selected>Escolha o setor</option>
+                        <option value="Recebimento">Recebimento</option>
+                        <option value="Armazenagem">Armazenagem</option>
+                        <option value="Separação">Separação</option>
+                        <option value="Expedição">Expedição</option>
+                        <option value="Gerencia">Gerencia</option>
+                        <option value="Encarregado">Encarregado</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                    <button type="submit">Cadastrar</button>
+                </form>
+            </div>
         </div>
     </div>
          <h3 style="display: flex; justify-content: center; padding-top: 10px; color: #fff;" >Dev: Henrique Dias</h3>

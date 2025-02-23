@@ -37,7 +37,6 @@ client.connect(err => {
     }
 });
 
-// REMOVIDO o UNIQUE da coluna coletor na criação da tabela
 client.query(`
     CREATE TABLE IF NOT EXISTS coletores (
         id SERIAL PRIMARY KEY,
@@ -50,17 +49,47 @@ client.query(`
     );
 `, (err, res) => {
     if (err) {
-        console.error('Erro ao criar/verificar tabela:', err);
+        console.error('Erro ao criar/verificar tabela "coletores":', err);
     } else {
         console.log('Tabela "coletores" pronta.');
+    }
+});
+client.query(`
+    CREATE TABLE IF NOT EXISTS colaboradores (
+        id SERIAL PRIMARY KEY,
+        matricula VARCHAR(255) NOT NULL,
+        nome VARCHAR(255) NOT NULL,
+        turno VARCHAR(255) NOT NULL,
+        setor VARCHAR(255) NOT NULL
+    );
+`, (err, res) => {
+    if (err) {
+        console.error('Erro ao criar/verificar tabela "colaboradores":', err);
+    } else {
+        console.log('Tabela "colaboradores" pronta.');
+    }
+});
+client.query(`
+    CREATE TABLE IF NOT EXISTS equipamentos (
+        id SERIAL PRIMARY KEY,
+        id_pulsus VARCHAR(255) NOT NULL,
+        identificador VARCHAR(255) NOT NULL,
+        patrimonio VARCHAR(255) NOT NULL,
+        numero VARCHAR(255) NOT NULL,
+        condicao VARCHAR(255) NOT NULL
+    );
+`, (err, res) => {
+    if (err) {
+        console.error('Erro ao criar/verificar tabela "equipamentos":', err);
+    } else {
+        console.log('Tabela "equipamentos" pronta.');
     }
 });
 
 app.get('/api/coletores', (req, res) => {
     client.query(`
-        SELECT c.matricula, c.coletor, c.turno, c.data, c.status, h.headset 
-        FROM coletores c
-        LEFT JOIN headsets h ON c.matricula = h.matricula`, (err, result) => { // Use LEFT JOIN para incluir coletores mesmo sem headset
+        SELECT c.matricula, c.coletor AS equipamento, c.turno, c.data, c.status, c.headset
+        FROM coletores c`, (err, result) => {
         if (err) {
             console.error('Erro ao consultar coletores:', err);
             return res.status(500).json({ message: 'Erro ao obter dados.' });
@@ -69,61 +98,105 @@ app.get('/api/coletores', (req, res) => {
     });
 });
 
-
-// ROTA /api/cadastrar SIMPLIFICADA (sem verificação de duplicidade)
 app.post('/api/cadastrar', (req, res) => {
-    const { matricula, coletor, turno, headset } = req.body; // Adicione headset aqui
-    const data = new Date().toISOString().split('T')[0];
-
-    console.log("Dados recebidos para cadastro:", { matricula, coletor, turno, data, headset });
-
-    client.query(
-        `INSERT INTO coletores (matricula, coletor, turno, data, status, headset) VALUES ($1, $2, $3, $4, 'Pendente', $5)`, // Inclua headset na query
-        [matricula, coletor, turno, data, headset], // Adicione headset aos parâmetros
-        (err, result) => {
-            if (err) {
-                console.error('ERRO na query de cadastro:', err);
-                res.status(500).json({ message: `Erro ao cadastrar: ${err.message}` }); // Envia a mensagem de erro detalhada
-                return;
-            }
-
-            console.log("Resultado da query de cadastro:", result);
-            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
-        }
-    );
-});
-app.post('/api/cadastrarColetor', (req, res) => {
-    const { matricula, coletor, turno } = req.body;
+    const { matricula, coletor, turno, headset } = req.body;
     const data = new Date().toISOString().split('T')[0];
 
     client.query(
-        `INSERT INTO coletores (matricula, coletor, turno, data, status) VALUES ($1, $2, $3, $4, 'Pendente')`,
+        `SELECT * FROM coletores WHERE matricula = $1 AND coletor = $2 AND turno = $3 AND data = $4`,
         [matricula, coletor, turno, data],
         (err, result) => {
             if (err) {
-                console.error('Erro na query de cadastro de coletor:', err);
-                return res.status(500).json({ message: 'Erro ao cadastrar coletor.' });
+                console.error('Erro ao verificar duplicidade:', err);
+                return res.status(500).json({ message: 'Erro ao verificar duplicidade.' });
             }
-            res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+
+            if (result.rows.length > 0) {
+                return res.status(409).json({ message: 'Este coletor já está cadastrado.' });
+            }
+
+            client.query(
+                `INSERT INTO coletores (matricula, coletor, turno, data, status, headset) VALUES ($1, $2, $3, $4, 'Pendente', $5)`,
+                [matricula, coletor, turno, data, headset],
+                (err, result) => {
+                    if (err) {
+                        console.error('ERRO na query de cadastro:', err);
+                        return res.status(500).json({ message: `Erro ao cadastrar: ${err.message}` });
+                    }
+
+                    console.log("Resultado da query de cadastro:", result);
+                    res.status(201).json({ message: 'Coletor cadastrado com sucesso.' });
+                }
+            );
         }
     );
 });
 
-app.post('/api/cadastrarHeadset', (req, res) => {
-    const { matricula, headset } = req.body;
+app.post('/api/cadastrarEquipamento', async (req, res) => {
+    const { idPulsus, identificador, patrimonio, numero, condicao } = req.body;
 
-    client.query(
-        `INSERT INTO headsets (matricula, headset, data) VALUES ($1, $2, $3)`, // Tabela separada para headsets
-        [matricula, headset, new Date().toISOString().split('T')[0]],
-        (err, result) => {
-            if (err) {
-                console.error('Erro na query de cadastro de headset:', err);
-                return res.status(500).json({ message: 'Erro ao cadastrar headset.' });
-            }
-            res.status(201).json({ message: 'Headset cadastrado com sucesso.' });
-        }
-    );
+    try {
+        await client.query(
+            'INSERT INTO equipamentos (id_pulsus, identificador, patrimonio, numero, condicao) VALUES ($1, $2, $3, $4, $5)',
+            [idPulsus, identificador, patrimonio, numero, condicao]
+        );
+        res.status(201).json({ message: 'Equipamento cadastrado com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao cadastrar equipamento:', error);
+        res.status(500).json({ message: 'Erro ao cadastrar equipamento.' });
+    }
 });
+
+app.get('/api/equipamentos', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM equipamentos');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Erro ao buscar equipamentos:', error);
+        res.status(500).json({ message: 'Erro ao buscar equipamentos.' });
+    }
+});
+
+app.post('/api/cadastrarColaborador', async (req, res) => {
+    const { matricula, nome, turno, setor } = req.body;
+
+    try {
+        await client.query(
+            'INSERT INTO colaboradores (matricula, nome, turno, setor) VALUES ($1, $2, $3, $4)',
+            [matricula, nome, turno, setor]
+        );
+        res.status(201).json({ message: 'Colaborador cadastrado com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao cadastrar colaborador:', error);
+        res.status(500).json({ message: 'Erro ao cadastrar colaborador: ' + error.message }); // Adiciona a mensagem de erro
+    }
+});
+
+app.get('/api/colaboradores', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM colaboradores');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Erro ao buscar colaboradores:', error);
+        res.status(500).json({ message: 'Erro ao buscar colaboradores.' });
+    }
+});
+app.get('/api/contagem-status', (req, res) => {
+    client.query(`
+        SELECT 
+            COUNT(CASE WHEN condicao = 'Operando' THEN 1 END) AS operando,
+            COUNT(CASE WHEN condicao = 'Quebrado' THEN 1 END) AS quebrado
+        FROM equipamentos
+    `, (err, result) => {
+        if (err) {
+            console.error('Erro ao obter contagem de status de equipamentos:', err);
+            return res.status(500).json({ message: 'Erro ao obter contagem de status de equipamentos.' });
+        }
+        console.log('Dados retornados pela contagem de status de equipamentos:', result.rows[0]);
+        res.json(result.rows[0]);
+    });
+});
+
 
 app.post('/api/devolver', async (req, res) => {
     const { coletor } = req.body;
@@ -150,21 +223,20 @@ app.post('/api/devolver', async (req, res) => {
 });
 
 app.get('/api/contagens', (req, res) => {
-  client.query(`
-      SELECT
-          COUNT(DISTINCT CASE WHEN coletor LIKE 'Z%' AND status = 'Pendente' THEN coletor END) AS Z,
-          COUNT(DISTINCT CASE WHEN coletor LIKE 'C%' AND status = 'Pendente' THEN coletor END) AS C,
-          COUNT(DISTINCT CASE WHEN coletor LIKE 'T%' AND status = 'Pendente' THEN coletor END) AS T
-      FROM coletores;
-  `, (err, result) => {
-      if (err) {
-          console.error('Erro ao obter contagens:', err);
-          return res.status(500).json({ message: 'Erro ao obter contagens.' });
-      }
-      res.json(result.rows[0]);
-  });
+    client.query(`
+        SELECT
+            COUNT(DISTINCT CASE WHEN coletor LIKE 'Z%' AND status = 'Pendente' THEN coletor END) AS Z,
+            COUNT(DISTINCT CASE WHEN coletor LIKE 'C%' AND status = 'Pendente' THEN coletor END) AS C,
+            COUNT(DISTINCT CASE WHEN coletor LIKE 'T%' AND status = 'Pendente' THEN coletor END) AS T
+        FROM coletores;
+    `, (err, result) => {
+        if (err) {
+            console.error('Erro ao obter contagens:', err);
+            return res.status(500).json({ message: 'Erro ao obter contagens.' });
+        }
+        res.json(result.rows[0]);
+    });
 });
-
 
 async function limparBancoDeDados() {
     try {
