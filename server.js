@@ -11,9 +11,23 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors({
     origin: '*',
-    methods: 'GET,POST',
-    allowedHeaders: 'Content-Type',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    preflightContinue: false, // Importante para o tratamento correto do OPTIONS
+    optionsSuccessStatus: 204
 }));
+
+// Handler explícito para OPTIONS (deve vir antes das rotas)
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.status(204).end();
+});
+
+
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -86,16 +100,19 @@ client.query(`
     }
 });
 
-app.get('/api/coletores', (req, res) => {
-    client.query(`
-        SELECT c.matricula, c.coletor AS equipamento, c.turno, c.data, c.status, c.headset
-        FROM coletores c`, (err, result) => {
-        if (err) {
-            console.error('Erro ao consultar coletores:', err);
-            return res.status(500).json({ message: 'Erro ao obter dados.' });
-        }
+app.get('/api/coletores', async (req, res) => {
+    try {
+        const result = await client.query(`
+            SELECT c.*, col.nome as nome_colaborador 
+            FROM coletores c
+            LEFT JOIN colaboradores col ON c.matricula = col.matricula
+            ORDER BY c.data DESC
+        `);
         res.json(result.rows);
-    });
+    } catch (error) {
+        console.error('Erro ao buscar coletores:', error);
+        res.status(500).json({ error: 'Erro ao buscar dados' });
+    }
 });
 
 app.post('/api/cadastrar', (req, res) => {
@@ -149,7 +166,27 @@ app.post('/api/cadastrarEquipamento', async (req, res) => {
 
 app.get('/api/equipamentos', async (req, res) => {
     try {
-        const result = await client.query('SELECT * FROM equipamentos');
+        let query = 'SELECT * FROM equipamentos WHERE 1=1';
+        const params = [];
+        
+        if (req.query.id_pulsus) {
+            query += ' AND id_pulsus ILIKE $' + (params.length + 1);
+            params.push(`%${req.query.id_pulsus}%`);
+        }
+        if (req.query.identificador) {
+            query += ' AND identificador ILIKE $' + (params.length + 1);
+            params.push(`%${req.query.identificador}%`);
+        }
+        if (req.query.patrimonio) {
+            query += ' AND patrimonio ILIKE $' + (params.length + 1);
+            params.push(`%${req.query.patrimonio}%`);
+        }
+        if (req.query.condicao) {
+            query += ' AND condicao = $' + (params.length + 1);
+            params.push(req.query.condicao);
+        }
+        
+        const result = await client.query(query, params);
         res.json(result.rows);
     } catch (error) {
         console.error('Erro ao buscar equipamentos:', error);
@@ -196,7 +233,57 @@ app.get('/api/contagem-status', (req, res) => {
         res.json(result.rows[0]);
     });
 });
+app.post('/api/alterarStatus', async (req, res) => {
+    const { coletor, novoStatus, matriculaResponsavel } = req.body;
 
+    // Validação dos dados
+    if (!coletor || !novoStatus || (novoStatus === 'Quebrado' && !matriculaResponsavel)) {
+        return res.status(400).json({ error: 'Dados inválidos' });
+    }
+
+    try {
+        await client.query('BEGIN'); // Inicia transação
+
+        // 1. Atualiza o equipamento
+        const updateResult = await client.query(
+            `UPDATE equipamentos 
+             SET condicao = $1, 
+                 responsavel = $2
+             WHERE numero = $3
+             RETURNING *`,
+            [
+                novoStatus,
+                novoStatus === 'Quebrado' ? matriculaResponsavel : null,
+                coletor
+            ]
+        );
+
+        // 2. Se quebrado, registra no histórico
+        if (novoStatus === 'Quebrado') {
+            await client.query(
+                `INSERT INTO historico_quebras 
+                 (coletor, matricula_responsavel, data) 
+                 VALUES ($1, $2, NOW())`,  // Corrigido - fechei o parêntese corretamente
+                [coletor, matriculaResponsavel]
+            );
+        }
+
+        await client.query('COMMIT');
+        res.json({ success: true, data: updateResult.rows[0] });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Erro detalhado:', {
+            message: error.message,
+            query: error.query,
+            parameters: error.parameters
+        });
+        res.status(500).json({ 
+            error: 'Erro ao atualizar status',
+            details: error.message
+        });
+    }
+});
 
 app.post('/api/devolver', async (req, res) => {
     const { coletor } = req.body;
@@ -236,6 +323,175 @@ app.get('/api/contagens', (req, res) => {
         }
         res.json(result.rows[0]);
     });
+});
+
+app.put('/api/colaboradores/:matricula', async (req, res) => {
+    // Adicione headers manualmente para garantir
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'PUT');
+    
+    try {
+        const { matricula } = req.params;
+        const { nome, turno, setor } = req.body;
+
+        const result = await client.query(
+            'UPDATE colaboradores SET nome = $1, turno = $2, setor = $3 WHERE matricula = $4 RETURNING *',
+            [nome, turno, setor, matricula]
+        );
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Colaborador não encontrado' 
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Colaborador atualizado com sucesso',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar colaborador:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Erro ao atualizar colaborador',
+            error: error.message 
+        });
+    }
+});
+
+// Rota para excluir colaborador
+app.delete('/api/colaboradores/:matricula', async (req, res) => {
+    console.log(`Tentando excluir matrícula: ${req.params.matricula}`); // Log para diagnóstico
+    
+    try {
+        // 1. Verifica se o colaborador existe
+        const checkResult = await client.query(
+            'SELECT * FROM colaboradores WHERE matricula = $1', 
+            [req.params.matricula]
+        );
+        
+        if (checkResult.rowCount === 0) {
+            console.log('Colaborador não encontrado');
+            return res.status(404).json({
+                success: false,
+                message: 'Colaborador não encontrado'
+            });
+        }
+
+        // 2. Executa a exclusão
+        const deleteResult = await client.query(
+            'DELETE FROM colaboradores WHERE matricula = $1 RETURNING *',
+            [req.params.matricula]
+        );
+
+        console.log('Exclusão bem-sucedida:', deleteResult.rows[0]);
+        
+        res.json({
+            success: true,
+            message: 'Colaborador excluído com sucesso',
+            data: deleteResult.rows[0]
+        });
+        
+    } catch (error) {
+        console.error('Erro no servidor:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno ao excluir colaborador',
+            error: error.message
+        });
+    }
+});
+
+app.delete('/api/colaboradores/:matricula', async (req, res) => {
+    const { matricula } = req.params;
+    
+    try {
+        // Primeiro obtém o colaborador que será excluído
+        const colaborador = await client.query(
+            'SELECT * FROM colaboradores WHERE matricula = $1',
+            [matricula]
+        );
+        
+        if (colaborador.rowCount === 0) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Colaborador não encontrado' 
+            });
+        }
+
+        // Depois executa a exclusão
+        const result = await client.query(
+            'DELETE FROM colaboradores WHERE matricula = $1',
+            [matricula]
+        );
+        
+        res.json({
+            success: true,
+            message: 'Colaborador excluído com sucesso',
+            data: colaborador.rows[0]
+        });
+    } catch (error) {
+        console.error('Erro ao excluir colaborador:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Erro ao excluir colaborador',
+            error: error.message 
+        });
+    }
+});
+// Nova rota para verificar colaborador
+app.get('/api/verificarColaborador', async (req, res) => {
+    const { matricula } = req.query;
+    
+    try {
+        const result = await client.query(
+            'SELECT nome FROM colaboradores WHERE matricula = $1', 
+            [matricula]
+        );
+        
+        res.json({
+            encontrado: result.rows.length > 0,
+            nome: result.rows[0]?.nome || ''
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Modifique a rota de cadastro para incluir o nome
+app.post('/api/cadastrar', async (req, res) => {
+    const { matricula, coletor, turno, headset } = req.body;
+    const data = new Date().toISOString().split('T')[0];
+
+    try {
+        // Primeiro busca o colaborador
+        const colaborador = await client.query(
+            'SELECT nome FROM colaboradores WHERE matricula = $1', 
+            [matricula]
+        );
+        
+        if (colaborador.rows.length === 0) {
+            return res.status(404).json({ message: 'Colaborador não encontrado' });
+        }
+
+        const nomeColaborador = colaborador.rows[0].nome;
+
+        // Depois insere com o nome
+        const result = await client.query(
+            `INSERT INTO coletores 
+             (matricula, coletor, turno, data, status, headset, nome_colaborador) 
+             VALUES ($1, $2, $3, $4, 'Pendente', $5, $6) 
+             RETURNING *`,
+            [matricula, coletor, turno, data, headset, nomeColaborador]
+        );
+        
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Erro:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 async function limparBancoDeDados() {

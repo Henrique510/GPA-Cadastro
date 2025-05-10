@@ -4,74 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equipamentos</title>
-    <link rel="stylesheet" href="css/header.css">
-    <link rel="stylesheet" href="css/col.css">
+    <link rel="stylesheet" href="css/user.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
-<header class="header" style="margin-bottom: 80px;">
-    <div class="dash">
-        <img src="img/GPA.png" alt="Logo GPA">
-        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Controle de Equipamentos</h6>
-    </div>
-    <nav style="padding-top: 16px; padding-right: 100px;">
-        <ul>
-           <a href="index.html"><li class="">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                Cadastro
-            </li></a><a href="dashboard.html">
-            <li class="flex items-center mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
-                Histórico
-            </li></a><a href="Usuario.html">
-            <li class="flex items-center mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                Usuários
-            </li></a>
-            <li class="Selecionado">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16m10-16v16"></path>
-                </svg>
-                Equipamentos
-            </li>
-        </ul>
-    </nav>
-</header>
 <body>
-    <center>
-        <div class="contadores">
-            <div class="contador">
-                <div class="titulo-contador">Coletores Operando</div>
-                <div class="contador-valor" id="coletor-operando">0</div>
+    <div class="container-principal">
+        <aside class="menu-lateral">
+            <div class="menu-header">
+                <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+                <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
             </div>
-            <div class="contador">
-                <div class="titulo-contador">Coletores Quebrados</div>
-                <div class="contador-valor" id="coletor-quebrado">0</div>
-            </div>
+            <nav class="menu-items">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home menu-icon"></i>
+                    <span class="menu-text">Início</span>
+                </a>
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-text">Histórico</span>
+                </a>
+                <a href="Usuario.html" class="menu-item">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Usuários</span>
+                </a>
+                <a href="coletores.html" class="menu-item" style="background-color: #fff; color: #02253B;">
+                    <i class="fas fa-barcode menu-icon"></i> <!-- Ícone de leitor de código de barras -->
+                    <span class="menu-text">Coletores</span>
+                </a>
+                <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+            </nav>
+        </aside>
+        <main class="conteudo-principal">
+            <header class="conteudo-header">
+                <h1 class="header-title">Controle de Equipamentos</h1> 
+            </header>
+<body>
+
+    <div class="table-controls">
+        <button onclick="abrirModalCadastro()" class="cadastrar-usuario-btn">
+            <i class="fas fa-plus"></i> Adicionar Coletor
+        </button>
+        <div class="search-container">
+            <input type="text" id="search-nome" placeholder="Pesquisar por Número">
+            <button class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
         </div>
-</center>
-    <a href="index.html"><button>Voltar</button></a>
-    <button onclick="carregarDados()">Atualizar Dados</button>
-    <button onclick="abrirModalCadastro()">Adicionar Coletor</button>
-
-    <div id="filtros">
-        <input type="text" id="filtroMatricula" placeholder="Filtrar por ID">
-        <input type="text" id="filtroColetor" placeholder="Filtrar por Identificador">
-        <input type="text" id="filtroTurno" placeholder="Filtrar por Patrimônio">
-        <input type="text" id="filtroData" placeholder="Filtrar por Número">
-        <select id="filtroStatus">
-            <option value="">Condição</option>
-            <option value="pendente">Operando</option>
-            <option value="devolvido">Quebrado</option>
-        </select>
-        <button onclick="filtrarDados()">Filtrar</button>
+        <button class="filtros-btn" id="filtros-toggle">
+            <i class="fas fa-filter"></i> 
+        </button>
+        <button class="relatorio-btn">
+            <i class="fas fa-file-excel"></i> 
+        </button>
     </div>
-
+    <section id="filtros" class="hidden">
+        <input type="text" id="filtroPulsus" placeholder="Filtrar por Pulsus">
+        <input type="text" id="filtroIdentificador" placeholder="Filtrar por Identificador">
+        <input type="text" id="filtroPatrimonio" placeholder="Filtrar por Patrimônio">
+        <select id="filtroCondicao">
+            <option value="" disabled selected>Escolha a Condição</option>
+            <option value="Operando">Operando</option>
+            <option value="Quebrado">Quebrado</option>
+        </select>
+        <button type="button" onclick="filtrarDados()" class="btn-filtrar">Filtrar</button>
+    </section>
+    <div class="teste">
     <table>
         <thead>
             <tr>
@@ -80,11 +78,13 @@
                 <th>Patrimônio</th>
                 <th>Número</th>
                 <th>Condição</th>
+                <th>Responsável</th> <!-- Nova coluna -->
             </tr>
         </thead>
         <tbody id="dataTable1">
         </tbody> 
     </table>
+</div>
     <div id="modalCadastro" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -105,6 +105,34 @@
                 </select>
     
                 <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    <div id="modalStatus" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalStatus()">&times;</span>
+            <h2>Alterar Status do Coletor</h2>
+            <form id="formStatus">
+                <input type="hidden" id="coletorId">
+                <input type="hidden" id="statusAtual">
+                
+                <div class="form-group">
+                    <label>Novo Status:</label>
+                    <select id="novoStatus" class="form-control" required>
+                        <option value="">Selecione...</option>
+                        <option value="Operando">Operando</option>
+                        <option value="Quebrado">Quebrado</option>
+                    </select>
+                </div>
+                
+                <div id="responsavelGroup" class="form-group">
+                    <label>Matrícula do Responsável:</label>
+                    <input type="text" id="matriculaResponsavel" class="form-control" 
+                           placeholder="Digite a matrícula">
+                    <small class="text-muted">Apenas preencher quando mudar para "Quebrado"</small>
+                </div>
+                
+                <button type="button" onclick="confirmarAlteracaoStatus()" class="btn-confirmar">Confirmar</button>
             </form>
         </div>
     </div>
@@ -155,18 +183,21 @@ document.getElementById('formCadastro').addEventListener('submit', async functio
 
 function exibirDados(dados) {
     const dataTable = document.getElementById('dataTable1');
-    if (!dataTable) {
-        console.error("Elemento 'dataTable1' não encontrado!");
-        return;
-    }
-
+    if (!dataTable) return;
+    
     dataTable.innerHTML = dados.map(item => {
         return `<tr>
             <td>${item.id_pulsus}</td>
             <td>${item.identificador}</td>
             <td>${item.patrimonio}</td>
             <td>${item.numero}</td>
-            <td>${item.condicao}</td>
+            <td>
+                <span class="status ${item.condicao.toLowerCase()}">${item.condicao}</span>
+                <button class="btn-alterar-status-2" onclick="abrirModalStatus(this)">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+            <td class="responsavel">${item.responsavel || '-'}</td>
         </tr>`;
     }).join('');
 }
@@ -187,6 +218,237 @@ async function carregarDados() {
 
 // Carrega os dados ao carregar a página
 document.addEventListener('DOMContentLoaded', carregarDados);
+
+const minimizarMenuButton = document.getElementById('minimizar-menu');
+        const menuLateral = document.querySelector('.menu-lateral');
+        const logoGPA = document.getElementById('logo-gpa');
+        const menuTexts = document.querySelectorAll('.menu-text');
+        const userCircle = document.querySelector('.user-circle');
+        const filtrosToggle = document.getElementById('filtros-toggle');
+        const filtrosSection = document.getElementById('filtros');
+
+        minimizarMenuButton.addEventListener('click', () => {
+            menuLateral.classList.toggle('minimizado');
+            logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
+            menuTexts.forEach(text => {
+                text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
+            });
+        });
+
+        if(userCircle) {
+            userCircle.addEventListener('click', () => {
+                userCircle.classList.toggle('active');
+            });
+        }
+    
+        // Evento para mostrar/ocultar filtros
+        filtrosToggle.addEventListener('click', () => {
+            filtrosSection.classList.toggle('hidden');
+        });
+        async function filtrarDados() {
+    try {
+        // Obter valores dos filtros
+        const filtroPulsus = document.getElementById('filtroPulsus').value.trim();
+        const filtroIdentificador = document.getElementById('filtroIdentificador').value.trim();
+        const filtroPatrimonio = document.getElementById('filtroPatrimonio').value.trim();
+        const filtroCondicao = document.getElementById('filtroCondicao').value;
+        
+        // Montar URL com parâmetros
+        let url = '/api/equipamentos';
+        const params = new URLSearchParams();
+        
+        if (filtroPulsus) params.append('id_pulsus', filtroPulsus);
+        if (filtroIdentificador) params.append('identificador', filtroIdentificador);
+        if (filtroPatrimonio) params.append('patrimonio', filtroPatrimonio);
+        if (filtroCondicao) params.append('condicao', filtroCondicao);
+        
+        // Adicionar parâmetros à URL se existirem
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        console.log('URL da requisição:', url); // Para debug
+        
+        // Fazer a requisição
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Erro ao filtrar dados: ${response.status}`);
+        }
+        
+        const dados = await response.json();
+        console.log('Dados recebidos:', dados); // Para debug
+        exibirDados(dados);
+        
+    } catch (error) {
+        console.error('Erro ao filtrar:', error);
+        alert('Erro ao aplicar filtros: ' + error.message);
+    }
+}
+document.querySelector('.search-btn').addEventListener('click', function() {
+    const termo = document.getElementById('search-nome').value.toLowerCase();
+    const linhas = document.querySelectorAll('#dataTable1 tr');
+    
+    linhas.forEach(linha => {
+        const numero = linha.cells[3].textContent.toLowerCase();
+        if(numero.includes(termo)) {
+            linha.style.display = '';
+        } else {
+            linha.style.display = 'none';
+        }
+    });
+});
+let linhaAtual = null;
+
+function abrirModalStatus(btn) {
+    linhaAtual = btn.closest('tr');
+    const statusAtual = linhaAtual.querySelector('.status').textContent;
+    
+    document.getElementById('coletorId').value = linhaAtual.cells[3].textContent;
+    document.getElementById('statusAtual').value = statusAtual;
+    document.getElementById('novoStatus').value = '';
+    document.getElementById('matriculaResponsavel').value = '';
+    
+    // Resetar o estado do formulário
+    document.getElementById('responsavelGroup').style.display = 'none';
+    document.getElementById('matriculaResponsavel').removeAttribute('required');
+    
+    document.getElementById('modalStatus').style.display = 'block';
+}
+window.onclick = function(event) {
+    if (event.target == document.getElementById('modalCadastro')) {
+        document.getElementById('modalCadastro').style.display = "none";
+    }
+    if (event.target == document.getElementById('modalStatus')) {
+        fecharModalStatus();
+    }
+};
+
+function fecharModalStatus() {
+    document.getElementById('modalStatus').style.display = 'none';
+}
+
+document.getElementById('novoStatus').addEventListener('change', function() {
+    const novoStatus = this.value;
+    const grupoResponsavel = document.getElementById('responsavelGroup');
+    
+    if (novoStatus === 'Quebrado') {
+        grupoResponsavel.style.display = 'block';
+        document.getElementById('matriculaResponsavel').setAttribute('required', '');
+    } else {
+        grupoResponsavel.style.display = 'none';
+        document.getElementById('matriculaResponsavel').removeAttribute('required');
+    }
+});
+
+// Função para confirmar a alteração
+async function confirmarAlteracaoStatus() {
+    const coletorId = document.getElementById('coletorId').value;
+    const novoStatus = document.getElementById('novoStatus').value;
+    const matricula = document.getElementById('matriculaResponsavel').value;
+    
+    // Validação manual
+    if (novoStatus === 'Quebrado' && !matricula) {
+        alert('Por favor, informe a matrícula do responsável!');
+        document.getElementById('matriculaResponsavel').focus();
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/alterarStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                coletor: coletorId,
+                novoStatus: novoStatus,
+                matriculaResponsavel: novoStatus === 'Quebrado' ? matricula : null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Erro desconhecido');
+        }
+        
+        if (result.success) {
+            // Atualiza a tabela
+            linhaAtual.querySelector('.status').textContent = novoStatus;
+            linhaAtual.querySelector('.status').className = 'status ' + novoStatus.toLowerCase();
+            
+            // Atualiza a coluna do responsável
+            const celulaResponsavel = linhaAtual.querySelector('.responsavel');
+            celulaResponsavel.textContent = novoStatus === 'Quebrado' ? matricula : '-';
+            
+            fecharModalStatus();
+            alert('Status atualizado com sucesso!');
+        } else {
+            throw new Error(result.error || 'Falha ao atualizar status');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao atualizar status: ' + error.message);
+    }
+}
+
+document.getElementById('formStatus').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const coletorId = document.getElementById('coletorId').value;
+    const novoStatus = document.getElementById('novoStatus').value;
+    const matricula = document.getElementById('matriculaResponsavel').value;
+    
+    if (novoStatus === 'Quebrado' && !matricula) {
+        alert('Por favor, informe o ID do colaborador responsável!');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/alterarStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                coletor: coletorId,
+                novoStatus: novoStatus,
+                matriculaResponsavel: novoStatus === 'Quebrado' ? matricula : null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Atualiza a linha da tabela
+            linhaAtual.querySelector('.status').textContent = novoStatus;
+            linhaAtual.querySelector('.status').className = 'status ' + novoStatus.toLowerCase();
+            
+            // Atualiza a coluna do responsável
+            const celulaResponsavel = linhaAtual.querySelector('.responsavel');
+            celulaResponsavel.textContent = novoStatus === 'Quebrado' ? matricula : '-';
+            
+            fecharModalStatus();
+            alert('Status atualizado com sucesso!');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao atualizar status: ' + error.message);
+    }
+});
+// Adicione isso após carregar a página
+document.getElementById('matriculaResponsavel').addEventListener('input', async function(e) {
+    const termo = e.target.value;
+    if (termo.length > 3) {
+        // Busca colaboradores na API
+        const response = await fetch(`/api/buscarColaboradores?termo=${termo}`);
+        const colaboradores = await response.json();
+        
+        // Aqui você pode mostrar sugestões em um dropdown
+        console.log(colaboradores);
+    }
+});
     </script>
 </body>
 </html>

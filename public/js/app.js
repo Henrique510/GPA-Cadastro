@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = 'https://gpa-cadastro.onrender.com/api';
+    const API_URL = 'https://gpa-cadastro.onrender.com/api'; //https://gpa-cadastro.onrender.com/api ou http://localhost:3001/api
     const userForm = document.getElementById('userForm');
     const coletorInput = document.getElementById('coletor');
     const headsetInput = document.getElementById('headset');
@@ -193,6 +193,57 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("click", function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
+        }
+    });
+    
+    document.getElementById('matricula').addEventListener('blur', async function() {
+        const matricula = this.value.trim();
+        if (matricula) {
+            try {
+                const response = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
+                const data = await response.json();
+                
+                if (!data.encontrado) {
+                    alert('Colaborador não cadastrado!');
+                    document.getElementById('matricula').value = '';
+                    document.getElementById('matricula').focus();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar colaborador:', error);
+            }
+        }
+    });
+
+    // Modifique o evento de submit do formulário
+    userForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const matricula = matriculaInput.value.trim();
+        const coletor = coletorInput.value.trim();
+        const headset = headsetInput ? headsetInput.value.trim() : '';
+        const turno = turnoSelect.value;
+
+        // Verificar novamente antes de cadastrar
+        try {
+            const verifica = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
+            const data = await verifica.json();
+            
+            if (!data.encontrado) {
+                showMessage('Colaborador não cadastrado!', 'error');
+                return;
+            }
+
+            // Continua com o cadastro normal...
+            const response = await fetch(`${API_URL}/cadastrar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricula, coletor, turno, headset })
+            });
+            
+            // ... (restante do código existente)
+        } catch (error) {
+            console.error('Erro:', error);
+            showMessage('Erro ao verificar colaborador', 'error');
         }
     });
 });

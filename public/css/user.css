@@ -1,19 +1,251 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #02253B;
-    color: white;
-    text-align: center;
-    padding: 20px;
-}
-.container {
-    display: flex; /* Ativa o Flexbox */
-    justify-content: space-around; /* Espaçamento entre as tabelas */
-    align-items: flex-start; /* Alinha as tabelas no topo */
-    width: 100%; /* Ocupa toda a largura disponível */
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
 }
 
+body {
+    font-family: Arial, sans-serif;
+    color: white;
+    text-align: center;
+    display: flex; /* Para o layout principal */
+}
+
+.container-principal {
+    display: flex;
+    width: 100%;
+}
+
+.menu-lateral {
+    background-color: #02253B;
+    width: 250px;
+    height: 100vh;
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-lateral.minimizado {
+    width: 60px;
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.logo-menu {
+    width: 70px;
+    margin-right: 10px;
+}
+
+.minimizar-menu {
+    background: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.menu-items {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom, #02253B, #30598B);
+
+}
+
+.menu-item {
+    padding: 20px;
+    text-decoration: none;
+    color: white;
+    background: none;
+    border: none;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.menu-item i {
+    margin-right: 10px;
+}
+
+.menu-item:hover {
+    background-color: #7135A1;
+}
+
+.conteudo-principal {
+    flex-grow: 1;
+}
+
+.container-tabela {
+    width: 100%;
+}
+.teste {
+    padding: 20px;
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    max-width: 500px;
+    border-radius: 8px;
+    color: #02253B;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+#colaboradorForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#colaboradorForm input, 
+#colaboradorForm select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#colaboradorForm button {
+    padding: 10px;
+    background-color: #02253B;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#colaboradorForm button:hover {
+    background-color: #011a2c;
+}
+/* Estilo para a coluna de responsável */
+.responsavel {
+    font-size: 0.9em;
+    color: #666;
+    padding: 8px 12px;
+}
+
+/* Melhoria no modal */
+#responsavelGroup {
+    display: none; /* Começa oculto */
+    transition: all 0.3s ease;
+}
+
+/* Estilo para o campo de matrícula */
+#matriculaResponsavel {
+    margin-top: 5px;
+}
+
+.text-muted {
+    color: #6c757d;
+    font-size: 0.8em;
+}
+.text-muted {
+    color: #6c757d;
+    font-size: 0.8em;
+    display: block;
+    margin-top: 5px;
+}
+/* Estilos para edição inline */
+.edit-input {
+    width: 80%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.edit-select {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.btn-acao {
+    padding: 5px 10px;
+    margin: 0 3px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-editar {
+    background-color: #02253B;
+    color: white;
+}
+
+.btn-editar:hover {
+    background-color: #30598B;
+    color: white;
+}
+
+.btn-excluir {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-excluir:hover {
+    background-color: #6e0b00;
+    color: white;
+}
+.btn-salvar {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-salvar:hover {
+    background-color: #27ae60;
+}
+
+.btn-cancelar {
+    background-color: #f39c12;
+    color: white;
+}
+
+.btn-cancelar:hover {
+    background-color: #d35400;
+}
+
+/* Destaque para linha em edição */
+tr[data-id] {
+    transition: background-color 0.3s;
+}
+
+tr[data-id].edit-mode {
+    background-color: #f8f9fa;
+}
+
+
 table {
-    width: 80%; /* Largura de cada tabela (ajuste conforme necessário) */
+    width: 100%;
     border-collapse: collapse;
     background-color: white;
     color: black;
@@ -22,88 +254,248 @@ table {
 th, td {
     border: 1px solid #ddd;
     padding: 10px;
-    text-align: left;
 }
 
 th {
     background-color: #02253B;
     color: white;
 }
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin: 10px 0;
-    cursor: pointer;
-    background-color: #02253B;
-    color: white;
-    border: none;
-    border-radius: 5px;
-}
-button:hover {
-    background-color: #7135A1;
-}
-a {
-    text-decoration: none;
-}
-input {
+
+input, select, button {
     padding: 10px;
+    margin: 5px;
     border-radius: 5px;
     border: 1px solid #ddd;
 }
-#filtros {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-#filtros select {
-    padding: 10px;
-    border-radius: 5px;
-    color: #5c5c5c;
-}
 
-
-header {
-    background-color: transparent;
-    width: 100%;
-    text-align: center;
+button {
+    background-color: #02253B;
     color: white;
-    font-size: 34px;
-    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    color: #02253B;
+    background-color: #fff;
+}
+.btn-alterar-status-2{
+    padding: 4px;
+}
+#filtros {
+    margin-bottom: 20px;
     display: flex;
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
     justify-content: center;
     align-items: center;
-}
-.img {
-    width: 100px;
-    padding-right: 50px;
-    padding-bottom: 20px;
-}
-.contadores {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-}
-
-.contador { /* Estilos comuns para todos os contadores */
-    text-align: center;
     padding: 20px;
-    border-radius: 10px;
+}
+
+#filtros > * {
+    margin-right: 10px;
+    margin-bottom: 10px; /* Adiciona margem inferior para espaçamento */
+}
+.conteudo-header {
+    background-color: #eee;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px; /* Espaço entre os elementos */
+    position: sticky; /* Tornamos o header fixo também */
+    top: 0; /* Fixa no topo da viewport */
+    z-index: 20; /* Garante que o header fique acima da parte azul fixa */
+}   
+nav {
+    padding-right: 0px !important;
+}
+
+.ajuda-btn {
+    background-color: purple;
     color: white;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra suave (opcional) */
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-/* Degradês azuis diferentes para CADA CONTADOR (CORREÇÃO AQUI!) */
-.contador:nth-child(1) { /* Seleciona o primeiro contador (Z) */
-    background: linear-gradient(to bottom right, #072c42, #063552);
+.ajuda-btn:hover {
+    background-color: #7135A1;
 }
 
 
-.titulo-contador {
-    font-weight: bold;
-    display: block;
+.menu-lateral {
+    background-color: #02253B;
+    width: 250px;
+    height: 100vh;
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: none; /* Remove a borda */
+    
+        position: sticky;
+        top: 0px; /* Ajuste para a altura do seu header (`.conteudo-header`) */
+    z-index: 10; /* Garante que fique acima do conteúdo rolável */
+}
+
+.minimizar-menu {
+    border: 0;
+    margin-left: auto;
+}
+.linha-horizontal {
+    background-color:#7b7b7b; /* Cor cinza claro */
+    height: 1px;
+    width: 100%;
     margin-bottom: 10px;
 }
-#filtroStatus{
-    padding: 10px;
+/* ... (Outros estilos CSS) ... */
+
+.linha-horizontal-header {
+    background-color: #f0f0f0; /* Cor cinza claro */
+    height: 1px;
+    width: 100%;
+    margin-top: 10px; /* Ajuste a margem conforme necessário */
+}
+.menu-icon {
+    margin-right: 10px;
+}
+
+.menu-text {
+    display: inline-block;
+}
+
+.menu-lateral.minimizado .menu-text {
+    display: none;
+}
+.user-circle {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ddd;
+    margin-left: 10px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.user-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
     border-radius: 5px;
-    color: #5c5c5c;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 100
+}
+
+.user-circle.active .user-dropdown {
+    display: flex;
+}
+
+.dropdown-item {
+    padding: 10px;
+    text-decoration: none;
+    color: black;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.cadastrar-usuario-btn, .search-btn, .filtros-btn {
+    background-color: #02253B;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cadastrar-usuario-btn i, .search-btn i, .filtros-btn i {
+    margin-right: 5px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+#search-nome {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+
+
+
+#filtros.hidden {
+    display: none;
+}
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.cadastrar-usuario-btn, .search-btn, .filtros-btn, .relatorio-btn {
+    background-color: #02253B;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cadastrar-usuario-btn i, .search-btn i, .filtros-btn i, .relatorio-btn i {
+    margin-right: 5px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+#search-nome {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 5px;
+}
+
+
+#filtros.hidden {
+    display: none;
+}
+
+.conteudo-header {
+    background-color: #eee;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.header-title {
+    color: #02253B;
+    font-size: 1.5em;
+    margin: 0;
 }

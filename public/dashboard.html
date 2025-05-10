@@ -4,85 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="css/dash.css">
-    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/user.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
-    <style>
-        .status-pendente { background-color: red; color: white; }
-        .status-devolvido { background-color: green; color: white; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- No head do seu HTML -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+    .status-pendente { background-color: rgb(116, 0, 0); color: white; }
+    .status-devolvido { background-color: rgb(2, 65, 2); color: white; }
+        /* Adicione isso se não existir */
+        input[type="date"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        color: #02253B;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.5);
+    }
+</style>
 </head>
-<header class="header" style="margin-bottom: 80px;">
-    <div class="dash">
-        <img src="img/GPA.png" alt="Logo GPA">
-        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Histórico</h6>
-    </div>
-    <nav style="padding-top: 16px;">
-        <ul>
-            <a href="index.html"><li class="">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                Cadastro
-            </li></a>
-            <li class="Selecionado">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
-                Histórico
-            </li><a href="Usuario.html">
-            <li class="flex items-center mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                Usuários
-            </li></a><a href="coletores.html">
-            <li class="flex items-center mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16m10-16v16"></path>
-                </svg>
-                Coletores
-            </li></a>
-        </ul>
-    </nav>
-</header>
+<div class="container-principal">
+    <aside class="menu-lateral">
+        <div class="menu-header">
+            <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+            <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
+        </div>
+        <nav class="menu-items">
+            <a href="index.html" class="menu-item">
+                <i class="fas fa-home menu-icon"></i>
+                <span class="menu-text">Início</span>
+            </a>
+            <a href="dashboard.html" class="menu-item"  style="background-color: #fff; color: #02253B ;">
+                <i class="fas fa-history menu-icon"></i>
+                <span class="menu-text">Histórico</span>
+            </a>
+            <a href="Usuario.html" class="menu-item">
+                <i class="fas fa-users menu-icon"></i>
+                <span class="menu-text">Usuários</span>
+            </a>
+            <a href="coletores.html" class="menu-item">
+                <i class="fas fa-truck menu-icon"></i>
+                <span class="menu-text">Coletores</span>
+            </a>
+            <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+        </nav>
+    </aside>
+    <main class="conteudo-principal">
+        <header class="conteudo-header">
+            <h1 class="header-title">Histórico</h1>
+        </header>
 <body>
     
-    <div class="contadores">
-        <div class="contador">
-            <span class="titulo-contador">Coletores Zebra Pendentes</span>
-            <span id="contador-z">0</span>
+    <div class="table-controls">
+        <button onclick="carregarDados()" class="cadastrar-usuario-btn">
+            <i class="fas fa-history"></i> Atualizar Dados
+        </button>
+        <div class="search-container">
+            <input type="text" id="search-matricula" placeholder="Pesquisar por Matrícula">
+            <button class="search-btn" onclick="filtrarDados()"> <!-- Adicione o onclick -->
+                <i class="fas fa-search"></i>
+            </button>
         </div>
-        <div class="contador">
-            <span class="titulo-contador">Coletores Motorola Pendentes</span>
-            <span id="contador-c">0</span>
-        </div>
-        <div class="contador">
-            <span class="titulo-contador">Talkmans Pendentes</span>
-            <span id="contador-t">0</span>
-        </div>
+        <button class="filtros-btn" id="filtros-toggle">
+            <i class="fas fa-filter"></i> 
+        </button>
+        <button class="relatorio-btn" onclick="exportarParaExcelProfissional()">
+            <i class="fas fa-file-excel"></i> Exportar Excel
+        </button>
     </div>
-
-    <a href="index.html"><button>Voltar</button></a>
-    <button onclick="carregarDados()">Atualizar Dados</button>
-
-    <div id="filtros">
-        <input type="text" id="filtroMatricula" placeholder="Filtrar por Matrícula">
-        <input type="text" id="filtroColetor" placeholder="Filtrar por Coletor">
-        <input type="text" id="filtroTurno" placeholder="Filtrar por Turno">
-        <input type="text" id="filtroData" placeholder="Filtrar por Data">
-        <select id="filtroStatus">
-            <option value="">Todos os Status</option>
-            <option value="pendente">Pendente</option>
-            <option value="devolvido">Devolvido</option>
+    <section id="filtros" class="hidden">
+        <input type="text" id="filtroEquipamento" placeholder="Filtrar por Equipamento">
+        <input type="date" id="filtroData" style="color: #757575;">
+        <select id="turno" onchange="filtrarDados()">
+            <option value="" disabled selected>Escolha o turno</option>
+            <option value="1º Turno">1º Turno</option>
+            <option value="2º Turno">2º Turno</option>
+            <option value="3º Turno">3º Turno</option>
+            <option value="4º Turno">4º Turno</option>
+        </select>
+        <select id="status" onchange="filtrarDados()">
+            <option value="" disabled selected>Todos os Status</option>
+            <option value="Pendente">Pendente</option>
+            <option value="Devolvido">Devolvido</option>
         </select>
         <button onclick="filtrarDados()">Filtrar</button>
-    </div>
-
+    </section>
+    <div class="teste">
     <table>
         <thead>
             <tr>
                 <th>Matrícula</th>
+                <th>Colaborador</th>
                 <th>Equipamento</th>
                 <th>Headset</th>
                 <th>Turno</th>
@@ -92,59 +106,67 @@
         </thead>
         <tbody id="dataTable"></tbody>
     </table>
-
+</div>
     <script>
         let dados = [];
-        let exibirDadosOriginal = null; // Variável para armazenar a função original
 
         async function carregarDados() {
     try {
         const response = await fetch('/api/coletores');
-        if (!response.ok) {
-            throw new Error(`Erro ao carregar dados: ${response.status}`);
-        }
-        dados = []; // Limpa a variável dados aqui
+        if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.status}`);
+        
         dados = await response.json();
+        
+        // Pré-processamento das datas
+        dados.forEach(item => {
+            if (item.data) {
+                item.dataFormatada = formatarDataParaComparacao(item.data);
+            }
+        });
+        
         exibirDados(dados);
-        await atualizarContadores();
-        console.log("Dados carregados com sucesso:", dados);
+        atualizarContadores();
     } catch (error) {
         console.error('Erro ao carregar os dados:', error);
-        alert(error.message || "Erro desconhecido ao carregar os dados.");
+        alert(error.message || "Erro ao carregar os dados.");
     }
 }
 
-function exibirDados(dados) {
+        function exibirDados(dadosExibicao) {
     const dataTable = document.getElementById('dataTable');
     if (!dataTable) {
         console.error("Elemento 'dataTable' não encontrado!");
         return;
     }
 
-    dataTable.innerHTML = dados.map(item => {
+    dataTable.innerHTML = dadosExibicao.map(item => {
         const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-        let status = item.status.trim().toLowerCase();
-        let statusClass;
-
-        if (status === 'pendente') {
-            statusClass = 'status-pendente';
-            status = "Pendente";
-        } else if (status === 'devolvido') {
-            statusClass = 'status-devolvido';
-            status = "Devolvido";
-        } else {
-            statusClass = '';
-        }
-
+        const status = item.status ? item.status.toString().trim() : 'Desconhecido';
+        
         return `<tr>
             <td>${item.matricula}</td>
-            <td>${item.equipamento}</td>
+            <td>${item.nome_colaborador || 'N/A'}</td>
+            <td>${item.equipamento || item.coletor || 'N/A'}</td>
             <td>${item.headset || 'X'}</td>
-            <td>${item.turno}</td>
+            <td>${item.turno || 'N/A'}</td>
             <td>${dataFormatada}</td>
-            <td class="${statusClass}">${status}</td>
+            <td class="${getStatusClass(item.status)}">${status}</td>
         </tr>`;
     }).join('');
+}
+function getStatusClass(status) {
+    if (!status) return '';
+    
+    const statusLower = status.toString().toLowerCase().trim();
+    
+    switch(statusLower) {
+        case 'pendente':
+            return 'status-pendente';
+        case 'devolvido':
+            return 'status-devolvido';
+        default:
+            return '';
+    }
 }
 
         async function atualizarContadores() {
@@ -163,39 +185,160 @@ function exibirDados(dados) {
             }
         }
 
-        function filtrarDados() {
-    const matriculaInput = document.getElementById('filtroMatricula');
-    const coletorInput = document.getElementById('filtroColetor');
-    const turnoInput = document.getElementById('filtroTurno');
-    const dataInput = document.getElementById('filtroData');
-    const statusInput = document.getElementById('filtroStatus');
-
-    const matricula = matriculaInput.value.toLowerCase();
-    const coletor = coletorInput.value.toLowerCase();
-    const turno = turnoInput.value.toLowerCase();
-    const data = dataInput.value;
-    const status = statusInput.value.toLowerCase();
+function filtrarDados() {
+    const filtroMatricula = document.getElementById('search-matricula').value.toLowerCase();
+    const filtroEquipamento = document.getElementById('filtroEquipamento').value.toLowerCase();
+    const filtroData = document.getElementById('filtroData').value;
+    const turno = document.getElementById('turno').value.toLowerCase();
+    const status = document.getElementById('status').value.toLowerCase();
 
     const dadosFiltrados = dados.filter(item => {
-        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
-        const itemStatus = item.status.trim().toLowerCase();
+        const itemMatricula = item.matricula ? item.matricula.toLowerCase() : '';
+        const itemEquipamento = item.equipamento ? item.equipamento.toLowerCase() : '';
+        const itemTurno = item.turno ? item.turno.toLowerCase() : '';
+        const itemStatus = item.status ? item.status.trim().toLowerCase() : '';
+
+        // Comparação de datas corrigida
+        let dataMatch = true;
+        if (filtroData) {
+            if (!item.data) {
+                dataMatch = false;
+            } else {
+                // Formata a data do item para YYYY-MM-DD
+                const itemDate = new Date(item.data);
+                const itemDateFormatted = itemDate.toISOString().split('T')[0];
+                dataMatch = itemDateFormatted === filtroData;
+            }
+        }
 
         return (
-            item.matricula.toLowerCase().includes(matricula) &&
-            item.equipamento.toLowerCase().includes(coletor) && // Linha corrigida
-            item.turno.toLowerCase().includes(turno) &&
-            dataFormatada.includes(data) &&
-            (status === "" || itemStatus === status)
+            (filtroMatricula === '' || itemMatricula.includes(filtroMatricula)) &&
+            (filtroEquipamento === '' || itemEquipamento.includes(filtroEquipamento)) &&
+            dataMatch &&
+            (turno === '' || itemTurno.includes(turno)) &&
+            (status === '' || itemStatus.includes(status))
         );
     });
 
     exibirDados(dadosFiltrados);
-    atualizarContadores();
 }
-
-        // Garante que os dados sejam carregados e os contadores atualizados ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data atual como padrão no filtro
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    document.getElementById('filtroData').value = `${ano}-${mes}-${dia}`;
+    
+    // Carregar dados
+    carregarDados();
+});
         document.addEventListener('DOMContentLoaded', carregarDados);
 
+        const minimizarMenuButton = document.getElementById('minimizar-menu');
+        const menuLateral = document.querySelector('.menu-lateral');
+        const logoGPA = document.getElementById('logo-gpa');
+        const menuTexts = document.querySelectorAll('.menu-text');
+        const userCircle = document.querySelector('.user-circle');
+        const filtrosToggle = document.getElementById('filtros-toggle');
+        const filtrosSection = document.getElementById('filtros');
+// Verifique se os elementos existem
+if (filtrosToggle && filtrosSection) {
+  filtrosToggle.addEventListener('click', () => {
+    filtrosSection.classList.toggle('hidden');
+    
+    // Alternar ícone entre filtro e times (opcional)
+    const icon = filtrosToggle.querySelector('i');
+    if (filtrosSection.classList.contains('hidden')) {
+      icon.classList.remove('fa-times');
+      icon.classList.add('fa-filter');
+    } else {
+      icon.classList.remove('fa-filter');
+      icon.classList.add('fa-times');
+    }
+  });
+} else {
+  console.error('Elementos do filtro não encontrados!');
+}
+
+        minimizarMenuButton.addEventListener('click', () => {
+            filtrosSection.classList.add('mostrando'); // Adiciona classe para exibir
+            menuLateral.classList.toggle('minimizado');
+            logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
+            menuTexts.forEach(text => {
+                text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
+            });
+        });
+
+        userCircle.addEventListener('click', () => {
+            userCircle.classList.toggle('active');
+        });
+
+        filtrosToggle.addEventListener('click', () => {
+            filtrosSection.classList.toggle('hidden');
+        });
+
+        const filtroEquipamentoInput = document.getElementById('filtroEquipamento');
+        if (filtroEquipamentoInput) {
+            filtroEquipamentoInput.addEventListener('input', filtrarDados);
+        }
+
+        const filtroDataInput = document.getElementById('filtroData');
+        if (filtroDataInput) {
+            filtroDataInput.addEventListener('input', filtrarDados);
+        }
+
+        const turnoSelectElement = document.getElementById('turno');
+        if (turnoSelectElement) {
+            turnoSelectElement.addEventListener('change', filtrarDados);
+        }
+
+        const statusSelectElement = document.getElementById('status');
+        if (statusSelectElement) {
+            statusSelectElement.addEventListener('change', filtrarDados);
+        }
+
+        function exportarParaExcelProfissional() {
+    // 1. Pegar a tabela HTML
+    const tabela = document.querySelector('table');
+    
+    // 2. Criar uma cópia da tabela para aplicar estilos
+    const tabelaClone = tabela.cloneNode(true);
+    
+    // 3. Aplicar estilos ao cabeçalho na cópia
+    const thead = tabelaClone.querySelector('thead');
+    thead.style.backgroundColor = '#02253B';
+    thead.style.color = 'white';
+    thead.style.fontWeight = 'bold';
+    
+    // 4. Centralizar todo o conteúdo
+    const tds = tabelaClone.querySelectorAll('td, th');
+    tds.forEach(td => {
+        td.style.textAlign = 'center';
+        td.style.verticalAlign = 'middle';
+    });
+    
+    // 5. Converter e baixar
+    const workbook = XLSX.utils.table_to_book(tabelaClone);
+    
+    // 6. Nome do arquivo com data atual
+    const hoje = new Date();
+    const nomeArquivo = `Relatorio_Coletores_${hoje.getDate()}-${hoje.getMonth()+1}-${hoje.getFullYear()}.xlsx`;
+    
+    XLSX.writeFile(workbook, nomeArquivo);
+}
+function formatarDataParaComparacao(dataString) {
+    if (!dataString) return null;
+    
+    const dateObj = new Date(dataString);
+    if (isNaN(dateObj.getTime())) return null;
+    
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+}
     </script>
 </body>
 </html>

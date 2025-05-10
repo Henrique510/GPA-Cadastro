@@ -12,6 +12,58 @@ table {
     background-color: white;
     color: black;
 }
+.status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status.operando {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.quebrado {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.btn-alterar-status {
+    background: none;
+    border: none;
+    color: #02253B;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.btn-alterar-status:hover {
+    color: #03406e;
+}
+
+/* Estilos para o modal de status */
+#modalStatus .modal-content {
+    max-width: 500px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn-confirmar {
+    background-color: #02253B;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
 th, td {
     border: 1px solid #ddd;
     padding: 10px;
@@ -137,8 +189,12 @@ header {
     width: 40%;
     margin-top: 120px;
     border-radius: 10px;
+    color: #02253B !important;
   }
   .modal h2 {
+    color: #02253B;
+  }
+  .close h2 {
     color: #02253B;
   }
   .close {

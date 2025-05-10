@@ -5,92 +5,202 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usuários</title>
     <link rel="stylesheet" href="css/user.css">
-    <link rel="stylesheet" href="css/header.css">
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
-    <style>
-        .status-pendente { background-color: red; color: white; }
-        .status-devolvido { background-color: green; color: white; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-<header class="header" style="margin-bottom: 80px;">
-    <div class="dash">
-        <img src="img/GPA.png" alt="Logo GPA">
-        <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Controle de Colaboradores</h6>
-    </div>
-    <nav style="padding-top: 16px;">
-        <ul>
-           <a href="index.html"><li class="">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-                Cadastro
-            </li></a>
-            <a href="dashboard.html"><li class="">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
-                Histórico
-            </li></a>
-            <li class="Selecionado">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-                Usuários
-            </li><a href="coletores.html">
-            <li class="flex items-center mb-4">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16m10-16v16"></path>
-                </svg>
-                Coletores
-            </li></a>
-        </ul>
-    </nav>
-</header>
 <body>
+    <div class="container-principal">
+        <aside class="menu-lateral">
+            <div class="menu-header">
+                <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+                <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
+            </div>
+            <nav class="menu-items">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home menu-icon"></i>
+                    <span class="menu-text">Início</span>
+                </a>
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-text">Histórico</span>
+                </a>
+                <a href="Usuario.html" class="menu-item" style="background-color: #fff; color: #02253B ;">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Usuários</span>
+                </a>
+                <a href="coletores.html" class="menu-item">
+                    <i class="fas fa-truck menu-icon"></i>
+                    <span class="menu-text">Coletores</span>
+                </a>
+                <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+            </nav>
+           
+        </aside>
+        <main class="conteudo-principal">
+            <header class="conteudo-header">
+                <h1 class="header-title">Controle de Colaboradores</h1>
+            </header>
+            <div class="table-controls">
 
 
-    <a href="index.html"><button>Voltar</button></a>
-    <button onclick="carregarDados()">Atualizar Dados</button>
-    <section>
-    <div id="filtros">
-        <input type="text" id="filtroMatricula" placeholder="Filtrar por ID">
-        <input type="text" id="filtroColetor" placeholder="Filtrar por Nome">
-        <select id="turno" required>
-            <option value="" disabled selected>Escolha o turno</option>
-            <option value="1º Turno">1º Turno</option>
-            <option value="2º Turno">2º Turno</option>
-            <option value="3º Turno">3º Turno</option>
-            <option value="4º Turno">4º Turno</option>
-        </select>
-        <select id="Setor" required>
-            <option value="" disabled selected>Escolha o setor</option>
-            <option value="Recebimento">Recebimento</option>
-            <option value="Armazenagem">Armazenagem</option>
-            <option value="Separação">Separação</option>
-            <option value="Expedição">Expedição</option>
-            <option value="Gerência">Gerência</option>
-            <option value="Outro">Outro</option>
-        </select>
+                <button id="btnAdicionarUsuario" class="btn-adicionar-usuario"  >
+                    <i class="fas fa-plus"></i> Cadastrar Usuários
+                </button>
 
-        <button onclick="filtrarDados()">Filtrar</button>
+
+                <div id="modalCadastro" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2 style="color: #02253B;">Adicionar Colaborador</h2>
+                        <form id="colaboradorForm">
+                            <input type="text" id="matriculaColaborador" placeholder="Matrícula" required>
+                            <input type="text" id="nomeColaborador" placeholder="Nome Completo" required>
+                            <select id="turnoColaborador" required>
+                                <option value="" disabled selected>Selecione o Turno</option>
+                                <option value="1º Turno">1º Turno</option>
+                                <option value="2º Turno">2º Turno</option>
+                                <option value="3º Turno">3º Turno</option>
+                                <option value="4º Turno">4º Turno</option>
+                            </select>
+                            <select id="setorColaborador" required>
+                                <option value="" disabled selected>Selecione o Setor</option>
+                                <option value="Recebimento">Recebimento</option>
+                                <option value="Armazenagem">Armazenagem</option>
+                                <option value="Separação">Separação</option>
+                                <option value="Expedição">Expedição</option>
+                                <option value="Gerência">Gerência</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                            <button type="submit" id="modalButton">Cadastrar</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" id="search-nome" placeholder="Pesquisar por ID">
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="filtros-btn" id="filtros-toggle">
+                    <i class="fas fa-filter"></i> 
+                </button>
+                <button class="relatorio-btn" id="exportar-excel">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+            </div>
+            <section id="filtros" class="hidden">
+                <input type="text" id="filtroMatricula" placeholder="Filtrar por Nome">
+                <select id="turno" required>
+                    <option value="" disabled selected>Escolha o turno</option>
+                    <option value="1º Turno">1º Turno</option>
+                    <option value="2º Turno">2º Turno</option>
+                    <option value="3º Turno">3º Turno</option>
+                    <option value="4º Turno">4º Turno</option>
+                </select>
+                <select id="Setor" required>
+                    <option value="" disabled selected>Escolha o setor</option>
+                    <option value="Recebimento">Recebimento</option>
+                    <option value="Armazenagem">Armazenagem</option>
+                    <option value="Separação">Separação</option>
+                    <option value="Expedição">Expedição</option>
+                    <option value="Gerência">Gerência</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <button onclick="filtrarDados()">Filtrar</button>
+            </section>
+            <div class="teste">
+                <section class="container-tabela">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Turno</th>
+                                <th>Setor</th>
+                                <th>Ações</th> <!-- Nova coluna para os botões -->
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable1">
+                            <!-- Os dados serão preenchidos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </main>
     </div>
-</section>
-    <section class="container">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Turno</th>
-                    <th>Setor</th>
-                </tr>
-            </thead>
-            <tbody id="dataTable1">
-             </tbody> 
-        </table>
-    
-    </section>
-
     <script src="js/user.js"></script>
+    <script>
+        // Controle do menu lateral
+        const minimizarMenuButton = document.getElementById('minimizar-menu');
+        const menuLateral = document.querySelector('.menu-lateral');
+        const logoGPA = document.getElementById('logo-gpa');
+        const menuTexts = document.querySelectorAll('.menu-text');
+        const userCircle = document.querySelector('.user-circle');
+        const filtrosToggle = document.getElementById('filtros-toggle');
+        const filtrosSection = document.getElementById('filtros');
+    
+        // Controle do modal
+        const modal = document.getElementById("modalCadastro");
+        const btnAbrir = document.getElementById("btnAdicionarUsuario");
+        const btnFechar = document.querySelector(".close");
+    
+        // Evento para minimizar/mostrar menu lateral
+        minimizarMenuButton.addEventListener('click', () => {
+            menuLateral.classList.toggle('minimizado');
+            logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
+            menuTexts.forEach(text => {
+                text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
+            });
+        });
+    
+        // Evento para user circle (se necessário)
+        if(userCircle) {
+            userCircle.addEventListener('click', () => {
+                userCircle.classList.toggle('active');
+            });
+        }
+    
+        // Evento para mostrar/ocultar filtros
+        filtrosToggle.addEventListener('click', () => {
+            filtrosSection.classList.toggle('hidden');
+        });
+    
+        // Eventos para controle do modal
+        if(btnAbrir && modal) {
+            btnAbrir.addEventListener("click", function() {
+                modal.style.display = "block";
+            });
+        }
+    
+        if(btnFechar) {
+            btnFechar.addEventListener("click", function() {
+                modal.style.display = "none";
+            });
+        }
+    
+        // Fechar modal ao clicar fora
+        window.addEventListener("click", function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+        document.getElementById('exportar-excel').addEventListener('click', exportToExcel);
+
+function exportToExcel() {
+    // Obter a tabela
+    const table = document.querySelector('table');
+    
+    // Converter tabela para workbook
+    const workbook = XLSX.utils.table_to_book(table);
+    
+    // Gerar arquivo XLSX
+    XLSX.writeFile(workbook, 'Colaboradores.xlsx', {
+        bookType: 'xlsx',
+        type: 'array'
+    });
+}
+    </script>
 </body>
 </html>
