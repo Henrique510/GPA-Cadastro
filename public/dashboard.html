@@ -143,9 +143,19 @@
         const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
         const status = item.status ? item.status.toString().trim() : 'Desconhecido';
         
+        // Formata o nome do colaborador - primeira letra de cada palavra em maiúsculo
+        let nomeColaborador = item.nome_colaborador || 'N/A';
+        if (nomeColaborador !== 'N/A') {
+            nomeColaborador = nomeColaborador
+                .toLowerCase()
+                .split(' ')
+                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+                .join(' ');
+        }
+        
         return `<tr>
             <td>${item.matricula}</td>
-            <td>${item.nome_colaborador || 'N/A'}</td>
+            <td>${nomeColaborador}</td>
             <td>${item.equipamento || item.coletor || 'N/A'}</td>
             <td>${item.headset || 'X'}</td>
             <td>${item.turno || 'N/A'}</td>
@@ -194,17 +204,17 @@ function filtrarDados() {
 
     const dadosFiltrados = dados.filter(item => {
         const itemMatricula = item.matricula ? item.matricula.toLowerCase() : '';
-        const itemEquipamento = item.equipamento ? item.equipamento.toLowerCase() : '';
+        // Verifica tanto 'equipamento' quanto 'coletor'
+        const itemEquipamento = (item.equipamento || item.coletor || '').toString().toLowerCase();
         const itemTurno = item.turno ? item.turno.toLowerCase() : '';
         const itemStatus = item.status ? item.status.trim().toLowerCase() : '';
 
-        // Comparação de datas corrigida
+        // Comparação de datas
         let dataMatch = true;
         if (filtroData) {
             if (!item.data) {
                 dataMatch = false;
             } else {
-                // Formata a data do item para YYYY-MM-DD
                 const itemDate = new Date(item.data);
                 const itemDateFormatted = itemDate.toISOString().split('T')[0];
                 dataMatch = itemDateFormatted === filtroData;
@@ -223,12 +233,8 @@ function filtrarDados() {
     exibirDados(dadosFiltrados);
 }
 document.addEventListener('DOMContentLoaded', function() {
-    // Definir data atual como padrão no filtro
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    document.getElementById('filtroData').value = `${ano}-${mes}-${dia}`;
+    // Inicializa o filtro de data vazio
+    document.getElementById('filtroData').value = '';
     
     // Carregar dados
     carregarDados();

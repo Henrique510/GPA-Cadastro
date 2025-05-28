@@ -103,30 +103,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    e.preventDefault();
+    
+    // Desabilita o botão para evitar múltiplos cliques
+    const submitButton = userForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Processando...';
 
-        const matricula = matriculaInput.value.trim();
-        const coletor = coletorInput.value.trim();
-        const headset = headsetInput ? headsetInput.value.trim() : '';
-        const turno = turnoSelect.value;
+    const matricula = matriculaInput.value.trim();
+    const coletor = coletorInput.value.trim();
+    const headset = headsetInput ? headsetInput.value.trim() : '';
+    const turno = turnoSelect.value;
 
-        if (!matricula || !coletor) {
-            showMessage('Preencha os campos obrigatórios (Matrícula e Coletor).', 'error');
+    if (!matricula || !coletor) {
+        showMessage('Preencha os campos obrigatórios (Matrícula e Coletor).', 'error');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Cadastrar';
+        return;
+    }
+
+    try {
+        // 1. Verifica se o colaborador existe
+        const verificaColab = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
+        const colabData = await verificaColab.json();
+        
+        if (!colabData.encontrado) {
+            showMessage('Colaborador não cadastrado!', 'error');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Cadastrar';
             return;
         }
 
-        try {
-            const coletorData = await registerCollector(matricula, coletor, turno, headset);
-            showMessage('Coletor cadastrado com sucesso!', 'success');
-        } catch (error) {
-            showMessage(error.message, 'error');
-            return;
+        // 2. Faz o cadastro (o backend já trata o coletor pendente)
+        const response = await fetch(`${API_URL}/cadastrar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matricula, coletor, turno, headset })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Erro ao cadastrar');
         }
 
+        const result = await response.json();
+        
+        // Mensagem informando se houve devolução automática
+        showMessage(result.message, 'success');
+        
+        // Limpa os campos
         matriculaInput.value = '';
         coletorInput.value = '';
         if (headsetInput) headsetInput.value = '';
-    });
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        showMessage(error.message || 'Erro ao cadastrar', 'error');
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Cadastrar';
+    }
+});
 
     const colaboradorForm = document.getElementById('colaboradorForm');
     const matriculaColaboradorInput = document.getElementById('matriculaColaborador');
@@ -214,36 +251,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Modifique o evento de submit do formulário
-    userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const matricula = matriculaInput.value.trim();
-        const coletor = coletorInput.value.trim();
-        const headset = headsetInput ? headsetInput.value.trim() : '';
-        const turno = turnoSelect.value;
-
-        // Verificar novamente antes de cadastrar
-        try {
-            const verifica = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
-            const data = await verifica.json();
-            
-            if (!data.encontrado) {
-                showMessage('Colaborador não cadastrado!', 'error');
-                return;
-            }
-
-            // Continua com o cadastro normal...
-            const response = await fetch(`${API_URL}/cadastrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, coletor, turno, headset })
-            });
-            
-            // ... (restante do código existente)
-        } catch (error) {
-            console.error('Erro:', error);
-            showMessage('Erro ao verificar colaborador', 'error');
-        }
-    });
+    
 });

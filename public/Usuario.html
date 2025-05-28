@@ -8,6 +8,13 @@
     <link rel="icon" href="img/GPA2.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+    /* Estilo para garantir primeira letra maiúscula em toda a tabela */
+    #dataTable1 td {
+        text-transform: capitalize;
+    }
+</style>
+
 </head>
 <body>
     <div class="container-principal">
@@ -42,12 +49,9 @@
                 <h1 class="header-title">Controle de Colaboradores</h1>
             </header>
             <div class="table-controls">
-
-
-                <button id="btnAdicionarUsuario" class="btn-adicionar-usuario"  >
+                <button id="btnAdicionarUsuario" class="btn-adicionar-usuario">
                     <i class="fas fa-plus"></i> Cadastrar Usuários
                 </button>
-
 
                 <div id="modalCadastro" class="modal">
                     <div class="modal-content">
@@ -119,7 +123,7 @@
                                 <th>Nome</th>
                                 <th>Turno</th>
                                 <th>Setor</th>
-                                <th>Ações</th> <!-- Nova coluna para os botões -->
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="dataTable1">
@@ -132,6 +136,12 @@
     </div>
     <script src="js/user.js"></script>
     <script>
+        // Função para formatar nomes com primeira letra maiúscula
+       function formatarNome(nome) {
+    return nome.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+}
+
+
         // Controle do menu lateral
         const minimizarMenuButton = document.getElementById('minimizar-menu');
         const menuLateral = document.querySelector('.menu-lateral');
@@ -186,21 +196,51 @@
                 modal.style.display = "none";
             }
         });
+
+        // Função para exportar para Excel
         document.getElementById('exportar-excel').addEventListener('click', exportToExcel);
 
-function exportToExcel() {
-    // Obter a tabela
-    const table = document.querySelector('table');
-    
-    // Converter tabela para workbook
-    const workbook = XLSX.utils.table_to_book(table);
-    
-    // Gerar arquivo XLSX
-    XLSX.writeFile(workbook, 'Colaboradores.xlsx', {
-        bookType: 'xlsx',
-        type: 'array'
-    });
-}
+        function exportToExcel() {
+            // Obter a tabela
+            const table = document.querySelector('table');
+            
+            // Criar uma cópia para não afetar a exibição
+            const tableCopy = table.cloneNode(true);
+            
+            // Formatar os nomes na cópia
+            const nomeCells = tableCopy.querySelectorAll('tbody tr td:nth-child(2)');
+            nomeCells.forEach(cell => {
+                cell.textContent = formatarNome(cell.textContent);
+            });
+            
+            // Converter tabela para workbook
+            const workbook = XLSX.utils.table_to_book(tableCopy);
+            
+            // Gerar arquivo XLSX
+            XLSX.writeFile(workbook, 'Colaboradores.xlsx');
+        }
+
+        // Exemplo de como preencher a tabela (substitua pelo seu método real)
+        function carregarDadosExemplo() {
+            const dados = [];
+            
+            const tabela = document.getElementById('dataTable1');
+            tabela.innerHTML = dados.map(item => `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>${formatarNome(item.nome)}</td>
+                    <td>${item.turno}</td>
+                    <td>${item.setor}</td>
+                    <td>
+                        <button class="btn-editar">Editar</button>
+                        <button class="btn-excluir">Excluir</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Carregar dados quando a página carregar
+        document.addEventListener('DOMContentLoaded', carregarDadosExemplo);
     </script>
 </body>
 </html>

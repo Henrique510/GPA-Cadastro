@@ -461,12 +461,13 @@ app.get('/api/verificarColaborador', async (req, res) => {
 });
 
 // Modifique a rota de cadastro para incluir o nome
+// Rota para cadastro com tratamento automático de coletores pendentes
 app.post('/api/cadastrar', async (req, res) => {
     const { matricula, coletor, turno, headset } = req.body;
     const data = new Date().toISOString().split('T')[0];
 
     try {
-        // Primeiro busca o colaborador
+        // 1. Verifica se o colaborador existe
         const colaborador = await client.query(
             'SELECT nome FROM colaboradores WHERE matricula = $1', 
             [matricula]
@@ -478,7 +479,26 @@ app.post('/api/cadastrar', async (req, res) => {
 
         const nomeColaborador = colaborador.rows[0].nome;
 
-        // Depois insere com o nome
+        // 2. Verifica se o coletor já está em uso (pendente)
+        const coletorPendente = await client.query(
+            `SELECT id FROM coletores 
+             WHERE coletor = $1 AND status = 'Pendente' 
+             LIMIT 1`,
+            [coletor]
+        );
+
+        // 3. Se existir pendente, marca como devolvido
+        if (coletorPendente.rows.length > 0) {
+            await client.query(
+                `UPDATE coletores 
+                 SET status = 'Devolvido', 
+                     data_expiracao = NOW() + INTERVAL '4 days'
+                 WHERE id = $1`,
+                [coletorPendente.rows[0].id]
+            );
+        }
+
+        // 4. Cadastra o novo registro como pendente
         const result = await client.query(
             `INSERT INTO coletores 
              (matricula, coletor, turno, data, status, headset, nome_colaborador) 
@@ -487,10 +507,18 @@ app.post('/api/cadastrar', async (req, res) => {
             [matricula, coletor, turno, data, headset, nomeColaborador]
         );
         
-        res.status(201).json(result.rows[0]);
+        res.status(201).json({
+            message: coletorPendente.rows.length > 0 
+                   ? 'Coletor anterior marcado como devolvido e novo cadastro realizado' 
+                   : 'Coletor cadastrado com sucesso',
+            data: result.rows[0]
+        });
     } catch (error) {
-        console.error('Erro:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Erro no cadastro:', error);
+        res.status(500).json({ 
+            message: 'Erro ao cadastrar coletor',
+            error: error.message 
+        });
     }
 });
 
