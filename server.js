@@ -23,8 +23,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // CONFIGURAÇÃO DO BANCO: Ajustada para aceitar conexões locais e nuvem (Railway/Render)
 const client = new Client({
-    connectionString: process.env.DATABASE_URL || `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_DATABASE}`,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 client.connect(err => {
