@@ -27,30 +27,35 @@
 </head>
 <div class="container-principal">
     <aside class="menu-lateral">
-        <div class="menu-header">
-            <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
-            <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
-        </div>
-        <nav class="menu-items">
-            <a href="index.html" class="menu-item">
-                <i class="fas fa-home menu-icon"></i>
-                <span class="menu-text">Início</span>
+            <div class="menu-header">
+                <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+                <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
+            </div>
+            <nav class="menu-items">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home menu-icon"></i>
+                    <span class="menu-text">Início</span>
+                </a>
+                <a href="dashboard.html" class="menu-item" style="background-color: #fff; color: #02253B ;">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-text">Histórico</span>
+                </a>
+                <a href="Usuario.html" class="menu-item">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Usuários</span>
+                </a>
+                <a href="coletores.html" class="menu-item">
+                    <i class="fas fa-barcode menu-icon"></i>
+                    <span class="menu-text">Coletores</span>
+                </a>
+            <a href="dashboard_equipamentos.html" class="menu-item">
+                <i class="fas fa-chart-bar menu-icon"></i>
+                <span class="menu-text">Dashboard</span>
             </a>
-            <a href="dashboard.html" class="menu-item"  style="background-color: #fff; color: #02253B ;">
-                <i class="fas fa-history menu-icon"></i>
-                <span class="menu-text">Histórico</span>
-            </a>
-            <a href="Usuario.html" class="menu-item">
-                <i class="fas fa-users menu-icon"></i>
-                <span class="menu-text">Usuários</span>
-            </a>
-            <a href="coletores.html" class="menu-item">
-                <i class="fas fa-truck menu-icon"></i>
-                <span class="menu-text">Coletores</span>
-            </a>
-            <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
-        </nav>
-    </aside>
+                <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+            </nav>
+           
+        </aside>
     <main class="conteudo-principal">
         <header class="conteudo-header">
             <h1 class="header-title">Histórico</h1>
@@ -83,6 +88,7 @@
             <option value="2º Turno">2º Turno</option>
             <option value="3º Turno">3º Turno</option>
             <option value="4º Turno">4º Turno</option>
+            <option value="Hora Extra">Hora Extra</option>
         </select>
         <select id="status" onchange="filtrarDados()">
             <option value="" disabled selected>Todos os Status</option>
@@ -107,244 +113,267 @@
         <tbody id="dataTable"></tbody>
     </table>
 </div>
-    <script>
-        let dados = [];
+        <script>
+            let dados = [];
 
-        async function carregarDados() {
-    try {
-        const response = await fetch('/api/coletores');
-        if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.status}`);
-        
-        dados = await response.json();
-        
-        // Pré-processamento das datas
-        dados.forEach(item => {
-            if (item.data) {
-                item.dataFormatada = formatarDataParaComparacao(item.data);
-            }
-        });
-        
-        exibirDados(dados);
-        atualizarContadores();
-    } catch (error) {
-        console.error('Erro ao carregar os dados:', error);
-        alert(error.message || "Erro ao carregar os dados.");
-    }
-}
-
-        function exibirDados(dadosExibicao) {
-    const dataTable = document.getElementById('dataTable');
-    if (!dataTable) {
-        console.error("Elemento 'dataTable' não encontrado!");
-        return;
-    }
-
-    dataTable.innerHTML = dadosExibicao.map(item => {
-        const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-        const status = item.status ? item.status.toString().trim() : 'Desconhecido';
-        
-        // Formata o nome do colaborador - primeira letra de cada palavra em maiúsculo
-        let nomeColaborador = item.nome_colaborador || 'N/A';
-        if (nomeColaborador !== 'N/A') {
-            nomeColaborador = nomeColaborador
-                .toLowerCase()
-                .split(' ')
-                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
-                .join(' ');
-        }
-        
-        return `<tr>
-            <td>${item.matricula}</td>
-            <td>${nomeColaborador}</td>
-            <td>${item.equipamento || item.coletor || 'N/A'}</td>
-            <td>${item.headset || 'X'}</td>
-            <td>${item.turno || 'N/A'}</td>
-            <td>${dataFormatada}</td>
-            <td class="${getStatusClass(item.status)}">${status}</td>
-        </tr>`;
-    }).join('');
-}
-function getStatusClass(status) {
-    if (!status) return '';
-    
-    const statusLower = status.toString().toLowerCase().trim();
-    
-    switch(statusLower) {
-        case 'pendente':
-            return 'status-pendente';
-        case 'devolvido':
-            return 'status-devolvido';
-        default:
-            return '';
-    }
-}
-
-        async function atualizarContadores() {
-            try {
-                const response = await fetch('/api/contagens');
-                if (!response.ok) {
-                    throw new Error(`Erro ao obter contagens: ${response.status}`);
+            async function carregarDados() {
+        try {
+            const response = await fetch('http://10.210.249.169:1979/api/coletores');
+            if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.status}`);
+            
+            dados = await response.json();
+            
+            // Pré-processamento das datas
+            dados.forEach(item => {
+                if (item.data) {
+                    item.dataFormatada = formatarDataParaComparacao(item.data);
                 }
-                const contagens = await response.json();
-
-                document.getElementById('contador-z').textContent = contagens.z || 0;
-                document.getElementById('contador-c').textContent = contagens.c || 0;
-                document.getElementById('contador-t').textContent = contagens.t || 0;
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-function filtrarDados() {
-    const filtroMatricula = document.getElementById('search-matricula').value.toLowerCase();
-    const filtroEquipamento = document.getElementById('filtroEquipamento').value.toLowerCase();
-    const filtroData = document.getElementById('filtroData').value;
-    const turno = document.getElementById('turno').value.toLowerCase();
-    const status = document.getElementById('status').value.toLowerCase();
-
-    const dadosFiltrados = dados.filter(item => {
-        const itemMatricula = item.matricula ? item.matricula.toLowerCase() : '';
-        // Verifica tanto 'equipamento' quanto 'coletor'
-        const itemEquipamento = (item.equipamento || item.coletor || '').toString().toLowerCase();
-        const itemTurno = item.turno ? item.turno.toLowerCase() : '';
-        const itemStatus = item.status ? item.status.trim().toLowerCase() : '';
-
-        // Comparação de datas
-        let dataMatch = true;
-        if (filtroData) {
-            if (!item.data) {
-                dataMatch = false;
-            } else {
-                const itemDate = new Date(item.data);
-                const itemDateFormatted = itemDate.toISOString().split('T')[0];
-                dataMatch = itemDateFormatted === filtroData;
-            }
-        }
-
-        return (
-            (filtroMatricula === '' || itemMatricula.includes(filtroMatricula)) &&
-            (filtroEquipamento === '' || itemEquipamento.includes(filtroEquipamento)) &&
-            dataMatch &&
-            (turno === '' || itemTurno.includes(turno)) &&
-            (status === '' || itemStatus.includes(status))
-        );
-    });
-
-    exibirDados(dadosFiltrados);
-}
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializa o filtro de data vazio
-    document.getElementById('filtroData').value = '';
-    
-    // Carregar dados
-    carregarDados();
-});
-        document.addEventListener('DOMContentLoaded', carregarDados);
-
-        const minimizarMenuButton = document.getElementById('minimizar-menu');
-        const menuLateral = document.querySelector('.menu-lateral');
-        const logoGPA = document.getElementById('logo-gpa');
-        const menuTexts = document.querySelectorAll('.menu-text');
-        const userCircle = document.querySelector('.user-circle');
-        const filtrosToggle = document.getElementById('filtros-toggle');
-        const filtrosSection = document.getElementById('filtros');
-// Verifique se os elementos existem
-if (filtrosToggle && filtrosSection) {
-  filtrosToggle.addEventListener('click', () => {
-    filtrosSection.classList.toggle('hidden');
-    
-    // Alternar ícone entre filtro e times (opcional)
-    const icon = filtrosToggle.querySelector('i');
-    if (filtrosSection.classList.contains('hidden')) {
-      icon.classList.remove('fa-times');
-      icon.classList.add('fa-filter');
-    } else {
-      icon.classList.remove('fa-filter');
-      icon.classList.add('fa-times');
-    }
-  });
-} else {
-  console.error('Elementos do filtro não encontrados!');
-}
-
-        minimizarMenuButton.addEventListener('click', () => {
-            filtrosSection.classList.add('mostrando'); // Adiciona classe para exibir
-            menuLateral.classList.toggle('minimizado');
-            logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
-            menuTexts.forEach(text => {
-                text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
             });
+            
+            exibirDados(dados);
+            atualizarContadores();
+        } catch (error) {
+            console.error('Erro ao carregar os dados:', error);
+            alert(error.message || "Erro ao carregar os dados.");
+        }
+    }
+
+            function exibirDados(dadosExibicao) {
+        const dataTable = document.getElementById('dataTable');
+        if (!dataTable) {
+            console.error("Elemento 'dataTable' não encontrado!");
+            return;
+        }
+
+        dataTable.innerHTML = dadosExibicao.map(item => {
+            const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
+            const status = item.status ? item.status.toString().trim() : 'Desconhecido';
+            
+            // Formata o nome do colaborador - primeira letra de cada palavra em maiúsculo
+            let nomeColaborador = item.nome_colaborador || 'N/A';
+            if (nomeColaborador !== 'N/A') {
+                nomeColaborador = nomeColaborador
+                    .toLowerCase()
+                    .split(' ')
+                    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+                    .join(' ');
+            }
+            
+            return `<tr>
+                <td>${item.matricula}</td>
+                <td>${nomeColaborador}</td>
+                <td>${item.equipamento || item.coletor || 'N/A'}</td>
+                <td>${item.headset || 'X'}</td>
+                <td>${item.turno || 'N/A'}</td>
+                <td>${dataFormatada}</td>
+                <td class="${getStatusClass(item.status)}">${status}</td>
+            </tr>`;
+        }).join('');
+    }
+    function getStatusClass(status) {
+        if (!status) return '';
+        
+        const statusLower = status.toString().toLowerCase().trim();
+        
+        switch(statusLower) {
+            case 'pendente':
+                return 'status-pendente';
+            case 'devolvido':
+                return 'status-devolvido';
+            default:
+                return '';
+        }
+    }
+
+            async function atualizarContadores() {
+                try {
+                    const response = await fetch('http://10.210.249.169:3000/api/contagens');
+                    if (!response.ok) {
+                        throw new Error(`Erro ao obter contagens: ${response.status}`);
+                    }
+                    const contagens = await response.json();
+
+                    document.getElementById('contador-z').textContent = contagens.z || 0;
+                    document.getElementById('contador-c').textContent = contagens.c || 0;
+                    document.getElementById('contador-t').textContent = contagens.t || 0;
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+    function filtrarDados() {
+        const filtroMatricula = document.getElementById('search-matricula').value.toLowerCase();
+        const filtroEquipamento = document.getElementById('filtroEquipamento').value.toLowerCase();
+        const filtroData = document.getElementById('filtroData').value;
+        const turno = document.getElementById('turno').value.toLowerCase();
+        const status = document.getElementById('status').value.toLowerCase();
+
+        const dadosFiltrados = dados.filter(item => {
+            const itemMatricula = item.matricula ? item.matricula.toLowerCase() : '';
+            // Verifica tanto 'equipamento' quanto 'coletor'
+            const itemEquipamento = (item.equipamento || item.coletor || '').toString().toLowerCase();
+            const itemTurno = item.turno ? item.turno.toLowerCase() : '';
+            const itemStatus = item.status ? item.status.trim().toLowerCase() : '';
+
+            // Comparação de datas
+            let dataMatch = true;
+            if (filtroData) {
+                if (!item.data) {
+                    dataMatch = false;
+                } else {
+                    const itemDate = new Date(item.data);
+                    const itemDateFormatted = itemDate.toISOString().split('T')[0];
+                    dataMatch = itemDateFormatted === filtroData;
+                }
+            }
+
+            return (
+                (filtroMatricula === '' || itemMatricula.includes(filtroMatricula)) &&
+                (filtroEquipamento === '' || itemEquipamento.includes(filtroEquipamento)) &&
+                dataMatch &&
+                (turno === '' || itemTurno.includes(turno)) &&
+                (status === '' || itemStatus.includes(status))
+            );
         });
 
-        userCircle.addEventListener('click', () => {
-            userCircle.classList.toggle('active');
-        });
-
-        filtrosToggle.addEventListener('click', () => {
-            filtrosSection.classList.toggle('hidden');
-        });
-
-        const filtroEquipamentoInput = document.getElementById('filtroEquipamento');
-        if (filtroEquipamentoInput) {
-            filtroEquipamentoInput.addEventListener('input', filtrarDados);
-        }
-
-        const filtroDataInput = document.getElementById('filtroData');
-        if (filtroDataInput) {
-            filtroDataInput.addEventListener('input', filtrarDados);
-        }
-
-        const turnoSelectElement = document.getElementById('turno');
-        if (turnoSelectElement) {
-            turnoSelectElement.addEventListener('change', filtrarDados);
-        }
-
-        const statusSelectElement = document.getElementById('status');
-        if (statusSelectElement) {
-            statusSelectElement.addEventListener('change', filtrarDados);
-        }
-
-        function exportarParaExcelProfissional() {
-    // 1. Pegar a tabela HTML
-    const tabela = document.querySelector('table');
-    
-    // 2. Criar uma cópia da tabela para aplicar estilos
-    const tabelaClone = tabela.cloneNode(true);
-    
-    // 3. Aplicar estilos ao cabeçalho na cópia
-    const thead = tabelaClone.querySelector('thead');
-    thead.style.backgroundColor = '#02253B';
-    thead.style.color = 'white';
-    thead.style.fontWeight = 'bold';
-    
-    // 4. Centralizar todo o conteúdo
-    const tds = tabelaClone.querySelectorAll('td, th');
-    tds.forEach(td => {
-        td.style.textAlign = 'center';
-        td.style.verticalAlign = 'middle';
+        exibirDados(dadosFiltrados);
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializa o filtro de data vazio
+        document.getElementById('filtroData').value = '';
+        
+        // Carregar dados
+        carregarDados();
     });
+            document.addEventListener('DOMContentLoaded', carregarDados);
+
+            const minimizarMenuButton = document.getElementById('minimizar-menu');
+            const menuLateral = document.querySelector('.menu-lateral');
+            const logoGPA = document.getElementById('logo-gpa');
+            const menuTexts = document.querySelectorAll('.menu-text');
+            const userCircle = document.querySelector('.user-circle');
+            const filtrosToggle = document.getElementById('filtros-toggle');
+            const filtrosSection = document.getElementById('filtros');
+    // Verifique se os elementos existem
+    if (filtrosToggle && filtrosSection) {
+    filtrosToggle.addEventListener('click', () => {
+        filtrosSection.classList.toggle('hidden');
+        
+        // Alternar ícone entre filtro e times (opcional)
+        const icon = filtrosToggle.querySelector('i');
+        if (filtrosSection.classList.contains('hidden')) {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-filter');
+        } else {
+        icon.classList.remove('fa-filter');
+        icon.classList.add('fa-times');
+        }
+    });
+    } else {
+    console.error('Elementos do filtro não encontrados!');
+    }
+
+            minimizarMenuButton.addEventListener('click', () => {
+                filtrosSection.classList.add('mostrando'); // Adiciona classe para exibir
+                menuLateral.classList.toggle('minimizado');
+                logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
+                menuTexts.forEach(text => {
+                    text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
+                });
+            });
+
+            userCircle.addEventListener('click', () => {
+                userCircle.classList.toggle('active');
+            });
+
+            filtrosToggle.addEventListener('click', () => {
+                filtrosSection.classList.toggle('hidden');
+            });
+
+            const filtroEquipamentoInput = document.getElementById('filtroEquipamento');
+            if (filtroEquipamentoInput) {
+                filtroEquipamentoInput.addEventListener('input', filtrarDados);
+            }
+
+            const filtroDataInput = document.getElementById('filtroData');
+            if (filtroDataInput) {
+                filtroDataInput.addEventListener('input', filtrarDados);
+            }
+
+            const turnoSelectElement = document.getElementById('turno');
+            if (turnoSelectElement) {
+                turnoSelectElement.addEventListener('change', filtrarDados);
+            }
+
+            const statusSelectElement = document.getElementById('status');
+            if (statusSelectElement) {
+                statusSelectElement.addEventListener('change', filtrarDados);
+            }
+
+            function exportarParaExcelProfissional() {
+    // 1. Seleciona todas as linhas da tabela (corpo)
+    const linhas = document.querySelectorAll('#dataTable tr');
     
-    // 5. Converter e baixar
-    const workbook = XLSX.utils.table_to_book(tabelaClone);
-    
-    // 6. Nome do arquivo com data atual
+    // 2. Prepara o cabeçalho manualmente
+    const dadosParaExcel = [
+        ["Matrícula", "Colaborador", "Equipamento", "Headset", "Turno", "Data Cadastro", "Status"]
+    ];
+
+    // 3. Percorre cada linha da tabela e extrai o texto exato que o usuário vê
+    linhas.forEach(linha => {
+        const colunas = linha.querySelectorAll('td');
+        if (colunas.length > 0) {
+            dadosParaExcel.push([
+                colunas[0].innerText, // Matrícula
+                colunas[1].innerText, // Colaborador
+                colunas[2].innerText, // Equipamento
+                colunas[3].innerText, // Headset
+                colunas[4].innerText, // Turno
+                colunas[5].innerText, // DATA (Aqui pegamos o texto formatado pt-BR da tela)
+                colunas[6].innerText  // Status
+            ]);
+        }
+    });
+
+    // 4. Cria a planilha (Worksheet) a partir do array de arrays
+    const ws = XLSX.utils.aoa_to_sheet(dadosParaExcel);
+
+    // 5. Ajusta a largura das colunas para ficar legível
+    const larguraColunas = [
+        { wch: 15 }, // Matrícula
+        { wch: 30 }, // Colaborador
+        { wch: 20 }, // Equipamento
+        { wch: 10 }, // Headset
+        { wch: 15 }, // Turno
+        { wch: 20 }, // Data
+        { wch: 15 }  // Status
+    ];
+    ws['!cols'] = larguraColunas;
+
+    // 6. Cria o arquivo (Workbook) e adiciona a planilha
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Histórico");
+
+    // 7. Nome do arquivo com data atual
     const hoje = new Date();
-    const nomeArquivo = `Relatorio_Coletores_${hoje.getDate()}-${hoje.getMonth()+1}-${hoje.getFullYear()}.xlsx`;
-    
-    XLSX.writeFile(workbook, nomeArquivo);
+    const dataArquivo = hoje.toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const nomeArquivo = `Relatorio_Coletores_${dataArquivo}.xlsx`;
+
+    // 8. Salva o arquivo
+    XLSX.writeFile(wb, nomeArquivo);
 }
-function formatarDataParaComparacao(dataString) {
-    if (!dataString) return null;
-    
-    const dateObj = new Date(dataString);
-    if (isNaN(dateObj.getTime())) return null;
-    
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}`;
-}
-    </script>
-</body>
-</html>
+    function formatarDataParaComparacao(dataString) {
+        if (!dataString) return null;
+        
+        const dateObj = new Date(dataString);
+        if (isNaN(dateObj.getTime())) return null;
+        
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    }
+        </script>
+    </body>
+    </html>
