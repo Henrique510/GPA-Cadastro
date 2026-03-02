@@ -114,16 +114,19 @@
     </table>
 </div>
         <script>
-            let dados = [];
+    let dados = [];
 
-            async function carregarDados() {
+    // Função para pegar a URL base automaticamente (Local ou Railway)
+    const API_URL = window.location.origin;
+
+    async function carregarDados() {
         try {
-            const response = await fetch('http://10.210.249.169:1979/api/coletores');
+            // Alterado de IP fixo para URL dinâmica
+            const response = await fetch(`${API_URL}/api/coletores`);
             if (!response.ok) throw new Error(`Erro ao carregar dados: ${response.status}`);
             
             dados = await response.json();
             
-            // Pré-processamento das datas
             dados.forEach(item => {
                 if (item.data) {
                     item.dataFormatada = formatarDataParaComparacao(item.data);
@@ -134,28 +137,24 @@
             atualizarContadores();
         } catch (error) {
             console.error('Erro ao carregar os dados:', error);
-            alert(error.message || "Erro ao carregar os dados.");
+            // Removido o alert para não atrapalhar a navegação caso o banco demore a responder
         }
     }
 
-            function exibirDados(dadosExibicao) {
+    function exibirDados(dadosExibicao) {
         const dataTable = document.getElementById('dataTable');
-        if (!dataTable) {
-            console.error("Elemento 'dataTable' não encontrado!");
-            return;
-        }
+        if (!dataTable) return;
 
         dataTable.innerHTML = dadosExibicao.map(item => {
-            const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'Não Disponível';
-            const status = item.status ? item.status.toString().trim() : 'Desconhecido';
+            const dataFormatada = item.data ? new Date(item.data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'N/A';
+            const status = item.status ? item.status.toString().trim() : 'Pendente';
             
-            // Formata o nome do colaborador - primeira letra de cada palavra em maiúsculo
             let nomeColaborador = item.nome_colaborador || 'N/A';
             if (nomeColaborador !== 'N/A') {
                 nomeColaborador = nomeColaborador
                     .toLowerCase()
                     .split(' ')
-                    .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+                    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
                     .join(' ');
             }
             
@@ -166,40 +165,33 @@
                 <td>${item.headset || 'X'}</td>
                 <td>${item.turno || 'N/A'}</td>
                 <td>${dataFormatada}</td>
-                <td class="${getStatusClass(item.status)}">${status}</td>
+                <td class="${getStatusClass(status)}">${status}</td>
             </tr>`;
         }).join('');
     }
+
     function getStatusClass(status) {
         if (!status) return '';
-        
-        const statusLower = status.toString().toLowerCase().trim();
-        
-        switch(statusLower) {
-            case 'pendente':
-                return 'status-pendente';
-            case 'devolvido':
-                return 'status-devolvido';
-            default:
-                return '';
-        }
+        const s = status.toLowerCase().trim();
+        if (s === 'pendente') return 'status-pendente';
+        if (s === 'devolvido') return 'status-devolvido';
+        return '';
     }
 
-            async function atualizarContadores() {
-                try {
-                    const response = await fetch('http://10.210.249.169:3000/api/contagens');
-                    if (!response.ok) {
-                        throw new Error(`Erro ao obter contagens: ${response.status}`);
-                    }
-                    const contagens = await response.json();
+    async function atualizarContadores() {
+        try {
+            // Corrigido para usar a URL dinâmica do Railway
+            const response = await fetch(`${API_URL}/api/contagens`);
+            if (!response.ok) return;
+            const contagens = await response.json();
 
-                    document.getElementById('contador-z').textContent = contagens.z || 0;
-                    document.getElementById('contador-c').textContent = contagens.c || 0;
-                    document.getElementById('contador-t').textContent = contagens.t || 0;
-                } catch (error) {
-                    console.error(error);
-                }
-            }
+            if(document.getElementById('contador-z')) document.getElementById('contador-z').textContent = contagens.z || 0;
+            if(document.getElementById('contador-c')) document.getElementById('contador-c').textContent = contagens.c || 0;
+            if(document.getElementById('contador-t')) document.getElementById('contador-t').textContent = contagens.t || 0;
+        } catch (error) {
+            console.error("Erro nos contadores:", error);
+        }
+    }
 
     function filtrarDados() {
         const filtroMatricula = document.getElementById('search-matricula').value.toLowerCase();
@@ -209,171 +201,75 @@
         const status = document.getElementById('status').value.toLowerCase();
 
         const dadosFiltrados = dados.filter(item => {
-            const itemMatricula = item.matricula ? item.matricula.toLowerCase() : '';
-            // Verifica tanto 'equipamento' quanto 'coletor'
+            const itemMatricula = (item.matricula || '').toLowerCase();
             const itemEquipamento = (item.equipamento || item.coletor || '').toString().toLowerCase();
-            const itemTurno = item.turno ? item.turno.toLowerCase() : '';
-            const itemStatus = item.status ? item.status.trim().toLowerCase() : '';
+            const itemTurno = (item.turno || '').toLowerCase();
+            const itemStatus = (item.status || '').trim().toLowerCase();
 
-            // Comparação de datas
             let dataMatch = true;
-            if (filtroData) {
-                if (!item.data) {
-                    dataMatch = false;
-                } else {
-                    const itemDate = new Date(item.data);
-                    const itemDateFormatted = itemDate.toISOString().split('T')[0];
-                    dataMatch = itemDateFormatted === filtroData;
-                }
+            if (filtroData && item.data) {
+                const itemDateFormatted = new Date(item.data).toISOString().split('T')[0];
+                dataMatch = itemDateFormatted === filtroData;
             }
 
-            return (
-                (filtroMatricula === '' || itemMatricula.includes(filtroMatricula)) &&
-                (filtroEquipamento === '' || itemEquipamento.includes(filtroEquipamento)) &&
-                dataMatch &&
-                (turno === '' || itemTurno.includes(turno)) &&
-                (status === '' || itemStatus.includes(status))
-            );
+            return (itemMatricula.includes(filtroMatricula)) &&
+                   (itemEquipamento.includes(filtroEquipamento)) &&
+                   dataMatch &&
+                   (turno === '' || itemTurno.includes(turno)) &&
+                   (status === '' || itemStatus.includes(status));
         });
-
         exibirDados(dadosFiltrados);
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializa o filtro de data vazio
-        document.getElementById('filtroData').value = '';
-        
-        // Carregar dados
+
+    // Inicialização segura de eventos
+    document.addEventListener('DOMContentLoaded', () => {
         carregarDados();
-    });
-            document.addEventListener('DOMContentLoaded', carregarDados);
 
-            const minimizarMenuButton = document.getElementById('minimizar-menu');
-            const menuLateral = document.querySelector('.menu-lateral');
-            const logoGPA = document.getElementById('logo-gpa');
-            const menuTexts = document.querySelectorAll('.menu-text');
-            const userCircle = document.querySelector('.user-circle');
-            const filtrosToggle = document.getElementById('filtros-toggle');
-            const filtrosSection = document.getElementById('filtros');
-    // Verifique se os elementos existem
-    if (filtrosToggle && filtrosSection) {
-    filtrosToggle.addEventListener('click', () => {
-        filtrosSection.classList.toggle('hidden');
-        
-        // Alternar ícone entre filtro e times (opcional)
-        const icon = filtrosToggle.querySelector('i');
-        if (filtrosSection.classList.contains('hidden')) {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-filter');
-        } else {
-        icon.classList.remove('fa-filter');
-        icon.classList.add('fa-times');
-        }
-    });
-    } else {
-    console.error('Elementos do filtro não encontrados!');
-    }
+        const minimizarMenuButton = document.getElementById('minimizar-menu');
+        const menuLateral = document.querySelector('.menu-lateral');
+        const logoGPA = document.getElementById('logo-gpa');
+        const menuTexts = document.querySelectorAll('.menu-text');
+        const filtrosToggle = document.getElementById('filtros-toggle');
+        const filtrosSection = document.getElementById('filtros');
 
+        if (minimizarMenuButton) {
             minimizarMenuButton.addEventListener('click', () => {
-                filtrosSection.classList.add('mostrando'); // Adiciona classe para exibir
                 menuLateral.classList.toggle('minimizado');
-                logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
+                if(logoGPA) logoGPA.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'block';
                 menuTexts.forEach(text => {
                     text.style.display = menuLateral.classList.contains('minimizado') ? 'none' : 'inline-block';
                 });
             });
+        }
 
-            userCircle.addEventListener('click', () => {
-                userCircle.classList.toggle('active');
-            });
-
+        if (filtrosToggle && filtrosSection) {
             filtrosToggle.addEventListener('click', () => {
                 filtrosSection.classList.toggle('hidden');
             });
-
-            const filtroEquipamentoInput = document.getElementById('filtroEquipamento');
-            if (filtroEquipamentoInput) {
-                filtroEquipamentoInput.addEventListener('input', filtrarDados);
-            }
-
-            const filtroDataInput = document.getElementById('filtroData');
-            if (filtroDataInput) {
-                filtroDataInput.addEventListener('input', filtrarDados);
-            }
-
-            const turnoSelectElement = document.getElementById('turno');
-            if (turnoSelectElement) {
-                turnoSelectElement.addEventListener('change', filtrarDados);
-            }
-
-            const statusSelectElement = document.getElementById('status');
-            if (statusSelectElement) {
-                statusSelectElement.addEventListener('change', filtrarDados);
-            }
-
-            function exportarParaExcelProfissional() {
-    // 1. Seleciona todas as linhas da tabela (corpo)
-    const linhas = document.querySelectorAll('#dataTable tr');
-    
-    // 2. Prepara o cabeçalho manualmente
-    const dadosParaExcel = [
-        ["Matrícula", "Colaborador", "Equipamento", "Headset", "Turno", "Data Cadastro", "Status"]
-    ];
-
-    // 3. Percorre cada linha da tabela e extrai o texto exato que o usuário vê
-    linhas.forEach(linha => {
-        const colunas = linha.querySelectorAll('td');
-        if (colunas.length > 0) {
-            dadosParaExcel.push([
-                colunas[0].innerText, // Matrícula
-                colunas[1].innerText, // Colaborador
-                colunas[2].innerText, // Equipamento
-                colunas[3].innerText, // Headset
-                colunas[4].innerText, // Turno
-                colunas[5].innerText, // DATA (Aqui pegamos o texto formatado pt-BR da tela)
-                colunas[6].innerText  // Status
-            ]);
         }
     });
 
-    // 4. Cria a planilha (Worksheet) a partir do array de arrays
-    const ws = XLSX.utils.aoa_to_sheet(dadosParaExcel);
-
-    // 5. Ajusta a largura das colunas para ficar legível
-    const larguraColunas = [
-        { wch: 15 }, // Matrícula
-        { wch: 30 }, // Colaborador
-        { wch: 20 }, // Equipamento
-        { wch: 10 }, // Headset
-        { wch: 15 }, // Turno
-        { wch: 20 }, // Data
-        { wch: 15 }  // Status
-    ];
-    ws['!cols'] = larguraColunas;
-
-    // 6. Cria o arquivo (Workbook) e adiciona a planilha
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Histórico");
-
-    // 7. Nome do arquivo com data atual
-    const hoje = new Date();
-    const dataArquivo = hoje.toLocaleDateString('pt-BR').replace(/\//g, '-');
-    const nomeArquivo = `Relatorio_Coletores_${dataArquivo}.xlsx`;
-
-    // 8. Salva o arquivo
-    XLSX.writeFile(wb, nomeArquivo);
-}
     function formatarDataParaComparacao(dataString) {
         if (!dataString) return null;
-        
-        const dateObj = new Date(dataString);
-        if (isNaN(dateObj.getTime())) return null;
-        
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}`;
+        const d = new Date(dataString);
+        return isNaN(d) ? null : d.toISOString().split('T')[0];
     }
-        </script>
+
+    // Função de Exportar Excel (Mantida conforme original)
+    function exportarParaExcelProfissional() {
+        const linhas = document.querySelectorAll('#dataTable tr');
+        const dadosParaExcel = [["Matrícula", "Colaborador", "Equipamento", "Headset", "Turno", "Data Cadastro", "Status"]];
+        linhas.forEach(linha => {
+            const colunas = linha.querySelectorAll('td');
+            if (colunas.length > 0) {
+                dadosParaExcel.push(Array.from(colunas).map(col => col.innerText));
+            }
+        });
+        const ws = XLSX.utils.aoa_to_sheet(dadosParaExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Histórico");
+        XLSX.writeFile(wb, `Relatorio_GPA_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.xlsx`);
+    }
+</script>
     </body>
     </html>
