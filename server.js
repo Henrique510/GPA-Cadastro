@@ -4,39 +4,40 @@ const { Client } = require('pg');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const cron = require('node-cron');
 
-// AJUSTE DE PORTA: Aceita a porta da nuvem ou a 1979
+// Ajuste de Porta para Nuvem
 const PORT = process.env.PORT || 1979;
 
 const app = express();
 
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: true
-}));
-
+// Middleware
+app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// CONFIGURAÇÃO DO BANCO: Ajustada para aceitar conexões locais e nuvem (Railway/Render)
+// --- CONFIGURAÇÃO DO BANCO DE DADOS ---
+// Se não houver DATABASE_URL, o sistema avisará em vez de tentar o localhost
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+    console.error("❌ ERRO: A variável DATABASE_URL não foi encontrada!");
+    console.error("Verifique as 'Variables' no painel do Railway.");
+}
+
 const client = new Client({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: connectionString,
     ssl: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false // Obrigatório para Railway/Render
     }
 });
 
-client.connect(err => {
-    if (err) {
-        console.error('Erro ao conectar no banco:', err);
-        process.exit(1);
-    } else {
-        console.log('✅ Conectado ao PostgreSQL');
-    }
-});
+// Conectar ao Banco com tratamento de erro
+client.connect()
+    .then(() => console.log('✅ Conectado ao PostgreSQL do Railway'))
+    .catch(err => {
+        console.error('❌ Erro fatal ao conectar no banco:', err.message);
+        // Não encerra o processo imediatamente para permitir ver o log no Railway
+    });
 
 // --- INICIALIZAÇÃO DE TABELAS ---
 const initDb = async () => {
@@ -71,94 +72,69 @@ const initDb = async () => {
                 propriedade VARCHAR(255)
             );
         `);
-        console.log('✅ Tabelas verificadas/prontas.');
+        console.log('✅ Tabelas verificadas.');
     } catch (err) {
         console.error('❌ Erro ao criar tabelas:', err);
     }
 };
 initDb();
 
-// --- ROTAS ---
+// --- ROTAS DA API ---
 
-// Cadastro de Coletor (Empréstimo)
+// Verificar se o Colaborador existe
+app.get('/api/verificarColaborador', async (req, res) => {
+    const { matricula } = req.query;
+    try {
+        const result = await client.query('SELECT nome FROM colaboradores WHERE matricula = $1', [matricula]);
+        if (result.rows.length > 0) {
+            res.json({ encontrado: true, nome: result.rows[0].nome });
+        } else {
+            res.json({ encontrado: false });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Cadastrar Empréstimo (com baixa automática)
 app.post('/api/cadastrar', async (req, res) => {
     const { matricula, coletor, turno, headset } = req.body;
-    const data = new Date().toISOString().split('T')[0];
+    const dataHoje = new Date().toISOString().split('T')[0];
 
     try {
-        const colaboradorResult = await client.query('SELECT nome FROM colaboradores WHERE matricula = $1', [matricula]);
-        if (colaboradorResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Colaborador não encontrado.' });
-        }
-        const nomeColaborador = colaboradorResult.rows[0].nome;
+        const colab = await client.query('SELECT nome FROM colaboradores WHERE matricula = $1', [matricula]);
+        if (colab.rows.length === 0) return res.status(404).json({ message: 'Colaborador não cadastrado.' });
 
-        const equipamentoResult = await client.query('SELECT condicao FROM equipamentos WHERE identificador = $1 OR numero = $1', [coletor]);
-        if (equipamentoResult.rows.length === 0) {
-            return res.status(404).json({ success: false, message: 'Equipamento não existe na base.' });
-        }
-
-        if (equipamentoResult.rows[0].condicao.toLowerCase().includes('quebrado')) {
-            return res.status(400).json({ success: false, message: 'Equipamento está QUEBRADO no sistema.' });
-        }
-
-        // Baixa automática
+        // Baixa automática de pendência anterior do mesmo coletor
         await client.query("UPDATE coletores SET status = 'Devolvido', data_expiracao = NOW() WHERE coletor = $1 AND status = 'Pendente'", [coletor]);
 
-        const insertResult = await client.query(
+        await client.query(
             `INSERT INTO coletores (matricula, coletor, turno, data, status, headset, nome_colaborador) 
-             VALUES ($1, $2, $3, $4, 'Pendente', $5, $6) RETURNING *`,
-            [matricula, coletor, turno, data, headset, nomeColaborador]
+             VALUES ($1, $2, $3, $4, 'Pendente', $5, $6)`,
+            [matricula, coletor, turno, dataHoje, headset, colab.rows[0].nome]
         );
 
-        res.status(201).json({ success: true, message: 'Cadastrado com sucesso.', data: insertResult.rows[0] });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Listar Pendentes (CORRIGIDA)
-app.get('/api/pendentes', async (req, res) => {
-    try {
-        const query = `
-            SELECT c.coletor, c.matricula, c.turno, c.data AS data_hora, col.nome AS nome 
-            FROM coletores c
-            LEFT JOIN colaboradores col ON c.matricula = col.matricula 
-            WHERE c.status = 'Pendente' 
-            ORDER BY c.data DESC`;
-        
-        const result = await client.query(query); // CORRIGIDO: de pool para client
-        res.json(result.rows || []);
+        res.status(201).json({ success: true, message: 'Empréstimo registrado!' });
     } catch (err) {
-        console.error(err);
-        res.status(500).json([]);
+        res.status(500).json({ error: err.message });
     }
 });
 
-// Listar Equipamentos
-app.get('/api/equipamentos', async (req, res) => {
-    try {
-        const result = await client.query('SELECT * FROM equipamentos');
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar equipamentos.' });
-    }
-});
-
-// Cadastrar Equipamento (CORRIGIDA)
-app.post('/api/cadastrarEquipamento', async (req, res) => {
-    const { idPulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade } = req.body;
+// Cadastrar Novo Colaborador
+app.post('/api/cadastrarColaborador', async (req, res) => {
+    const { matricula, nome, turno, setor } = req.body;
     try {
         await client.query(
-            'INSERT INTO equipamentos (id_pulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [idPulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade]
+            'INSERT INTO colaboradores (matricula, nome, turno, setor) VALUES ($1, $2, $3, $4)',
+            [matricula, nome, turno, setor]
         );
-        res.status(201).json({ message: 'Equipamento cadastrado!' });
-    } catch (error) {
-        res.status(500).json({ message: 'Erro ao cadastrar.' });
+        res.status(201).json({ message: 'Colaborador cadastrado!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-// Devolver Coletor
+// Devolução Manual
 app.post('/api/devolver', async (req, res) => {
     const { coletor } = req.body;
     try {
@@ -166,14 +142,34 @@ app.post('/api/devolver', async (req, res) => {
             "UPDATE coletores SET status = 'Devolvido', data_expiracao = NOW() WHERE coletor = $1 AND status = 'Pendente'",
             [coletor]
         );
-        if (result.rowCount === 0) return res.status(404).json({ message: 'Nenhum pendente encontrado.' });
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (result.rowCount === 0) return res.status(404).json({ message: 'Não há pendência para este coletor.' });
+        res.json({ success: true, message: 'Devolvido com sucesso!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-// Iniciar servidor
+// Listar Pendentes
+app.get('/api/pendentes', async (req, res) => {
+    try {
+        const result = await client.query(`
+            SELECT c.coletor, c.matricula, c.turno, c.data, col.nome 
+            FROM coletores c
+            LEFT JOIN colaboradores col ON c.matricula = col.matricula
+            WHERE c.status = 'Pendente' ORDER BY c.id DESC
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json([]);
+    }
+});
+
+// Rota para o Frontend (SPA)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Iniciar
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
