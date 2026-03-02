@@ -12,7 +12,7 @@
     <header class="header" style="margin-bottom: 50px;">
         <div class="dash">
             <img src="img/GPA.png" alt="Logo GPA">
-            <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Cadastro de Equipamentos</h6>
+            <h6 class="text-xl" style="padding-top: 16px; padding-left: 20px;">Controle de Equipamento - CD1979</h6>
         </div>
         <nav style="padding-top: 16px;">
             <ul>
@@ -50,7 +50,7 @@
             <h2>Cadastro</h2>
             <input type="text" id="matricula" placeholder="Digite a Matrícula" required style="width: 85%;">
             <div class="coletor-inputs"> 
-                <input type="text" id="coletor" placeholder="Digite o Coletor" required>
+                <input type="text" id="coletor" placeholder="Digite o Coletor" maxlength="4" required>
                 <input type="text" id="headset" placeholder="Digite o Headset">
             </div>
             <select id="turno" required>
@@ -59,6 +59,7 @@
                 <option value="2º Turno">2º Turno</option>
                 <option value="3º Turno">3º Turno</option>
                 <option value="4º Turno">4º Turno</option>
+                <option value="Hora Extra">Hora Extra</option>
             </select>
             <button type="submit">Cadastrar</button>
         </form>
