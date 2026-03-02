@@ -240,7 +240,40 @@ app.put('/api/colaboradores/:matricula', async (req, res) => {
         });
     }
 });
+// 1. Rota para o Histórico Completo (Dashboard)
+app.get('/api/coletores', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM coletores ORDER BY id DESC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
+// 2. Rota para Contagem de Status (Dashboard)
+app.get('/api/contagem-status', async (req, res) => {
+    try {
+        const result = await client.query(`
+            SELECT 
+                COUNT(CASE WHEN condicao = 'Operando' THEN 1 END) AS operando,
+                COUNT(CASE WHEN condicao = 'Quebrado' THEN 1 END) AS quebrado
+            FROM equipamentos
+        `);
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ operando: 0, quebrado: 0 });
+    }
+});
+
+// 3. Rota para Listar Equipamentos (Gestão)
+app.get('/api/equipamentos', async (req, res) => {
+    try {
+        const result = await client.query('SELECT * FROM equipamentos ORDER BY identificador ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // Rota para deletar colaborador
 app.delete('/api/colaboradores/:matricula', async (req, res) => {
     const { matricula } = req.params;
