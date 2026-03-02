@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = 'https://gpa-cadastro.onrender.com/api'; //https://gpa-cadastro.onrender.com/api ou http://localhost:3001/api
+    // AJUSTE: O código agora identifica sozinho se está no Railway ou Localhost
+    const API_URL = window.location.origin + '/api'; 
+
     const userForm = document.getElementById('userForm');
     const coletorInput = document.getElementById('coletor');
     const headsetInput = document.getElementById('headset');
@@ -14,51 +16,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("modalCadastro");
     const btnFechar = document.querySelector(".close");
 
-    devolucaoSection.style.display = 'none';
+    if (devolucaoSection) devolucaoSection.style.display = 'none';
 
-    matriculaInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
-    coletorInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
-    devolucaoInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
-    if (headsetInput) headsetInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
-
-    devolucaoTitle.addEventListener('click', () => {
-        devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
+    // Formatação automática para Maiúsculas
+    const inputsToUpper = [matriculaInput, coletorInput, devolucaoInput, headsetInput];
+    inputsToUpper.forEach(input => {
+        if (input) input.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
     });
 
+    if (devolucaoTitle) {
+        devolucaoTitle.addEventListener('click', () => {
+            devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
     function showMessage(message, type = 'success', duration = 3000) {
+        if (!messageContainer) return;
         messageContainer.textContent = message;
         messageContainer.style.backgroundColor = type === 'success' ? 'green' : 'red';
         messageContainer.style.color = 'white';
         messageContainer.style.display = 'block';
-
-        setTimeout(() => {
-            messageContainer.style.display = 'none';
-        }, duration);
+        setTimeout(() => { messageContainer.style.display = 'none'; }, duration);
     }
 
-    async function registerCollector(matricula, coletor, turno, headset = '') {
-        try {
-            const response = await fetch(`${API_URL}/cadastrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, coletor, turno, headset }),
-            });
-
-            if (response.status === 409) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Este coletor já está cadastrado.');
-            } else if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Erro ${response.status} ao cadastrar.`);
-            }
-
-            return response.json();
-        } catch (error) {
-            console.error('Erro no cadastro:', error);
-            throw error;
-        }
-    }
-
+    // Função de Devolução
     async function devolveCollector(coletor) {
         try {
             const response = await fetch(`${API_URL}/devolver`, {
@@ -66,190 +47,131 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ coletor }),
             });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Erro ${response.status} ao devolver.`);
-            }
-            return response.json();
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Erro ao devolver');
+            showMessage('Devolvido com sucesso!', 'success');
+            return result;
         } catch (error) {
-            console.error('Erro na devolução:', error);
+            showMessage(error.message, 'error');
             throw error;
         }
     }
 
-    async function atualizarContadores() {
-        try {
-            const response = await fetch(`${API_URL}/contagem-status`);
-            if (!response.ok) {
-                throw new Error(`Erro ao obter contagem: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log('Dados recebidos para atualizar contadores:', data);
-            const coletorOperando = document.getElementById('coletor-operando');
-            const coletorQuebrado = document.getElementById('coletor-quebrado');
-            if (coletorOperando) {
-                coletorOperando.textContent = data.operando;
-            } else {
-                console.error('Elemento coletor-operando não encontrado.');
-            }
-            if (coletorQuebrado) {
-                coletorQuebrado.textContent = data.quebrado;
-            } else {
-                console.error('Elemento coletor-quebrado não encontrado.');
-            }
-        } catch (error) {
-            console.error('Erro ao atualizar contadores:', error);
-        }
-    }
+    // Evento de Cadastro de Empréstimo
+    if (userForm) {
+        userForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitButton = userForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processando...';
 
-    userForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    // Desabilita o botão para evitar múltiplos cliques
-    const submitButton = userForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.textContent = 'Processando...';
+            const matricula = matriculaInput.value.trim();
+            const coletor = coletorInput.value.trim();
+            const headset = headsetInput ? headsetInput.value.trim() : '';
+            const turno = turnoSelect.value;
 
-    const matricula = matriculaInput.value.trim();
-    const coletor = coletorInput.value.trim();
-    const headset = headsetInput ? headsetInput.value.trim() : '';
-    const turno = turnoSelect.value;
-
-    if (!matricula || !coletor) {
-        showMessage('Preencha os campos obrigatórios (Matrícula e Coletor).', 'error');
-        submitButton.disabled = false;
-        submitButton.textContent = 'Cadastrar';
-        return;
-    }
-
-    try {
-        // 1. Verifica se o colaborador existe
-        const verificaColab = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
-        const colabData = await verificaColab.json();
-        
-        if (!colabData.encontrado) {
-            showMessage('Colaborador não cadastrado!', 'error');
-            submitButton.disabled = false;
-            submitButton.textContent = 'Cadastrar';
-            return;
-        }
-
-        // 2. Faz o cadastro (o backend já trata o coletor pendente)
-        const response = await fetch(`${API_URL}/cadastrar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matricula, coletor, turno, headset })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao cadastrar');
-        }
-
-        const result = await response.json();
-        
-        // Mensagem informando se houve devolução automática
-        showMessage(result.message, 'success');
-        
-        // Limpa os campos
-        matriculaInput.value = '';
-        coletorInput.value = '';
-        if (headsetInput) headsetInput.value = '';
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        showMessage(error.message || 'Erro ao cadastrar', 'error');
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Cadastrar';
-    }
-});
-
-    const colaboradorForm = document.getElementById('colaboradorForm');
-    const matriculaColaboradorInput = document.getElementById('matriculaColaborador');
-    const nomeColaboradorInput = document.getElementById('nomeColaborador');
-    const turnoColaboradorSelect = document.getElementById('turnoColaborador');
-    const setorColaboradorSelect = document.getElementById('setorColaborador');
-
-    colaboradorForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const matricula = matriculaColaboradorInput.value.trim();
-        const nome = nomeColaboradorInput.value.trim();
-        const turno = turnoColaboradorSelect.value;
-        const setor = setorColaboradorSelect.value;
-
-        try {
-            const response = await fetch(`${API_URL}/cadastrarColaborador`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matricula, nome, turno, setor }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro ${response.status} ao cadastrar colaborador.`);
+            if (!matricula || !coletor) {
+                showMessage('Preencha Matrícula e Coletor.', 'error');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Cadastrar';
+                return;
             }
 
-            showMessage('Colaborador cadastrado com sucesso!', 'success');
-            modal.style.display = "none";
-
-            // Reseta os inputs do modal
-            matriculaColaboradorInput.value = '';
-            nomeColaboradorInput.value = '';
-            turnoColaboradorSelect.value = '';
-            setorColaboradorSelect.value = '';
-
-        } catch (error) {
-            showMessage(error.message, 'error');
-        }
-    });
-
-    devolverButton.addEventListener('click', async () => {
-        const coletor = devolucaoInput.value.trim();
-        if (!coletor) {
-            showMessage('Informe o coletor para devolução!', 'error');
-            return;
-        }
-        try {
-            const data = await devolveCollector(coletor);
-            devolucaoInput.value = '';
-            console.log('Devolução do coletor realizada com sucesso!');
-        } catch (error) {
-            showMessage(error.message, 'error');
-        }
-    });
-
-    btnAbrir.addEventListener("click", function () {
-        modal.style.display = "block";
-    });
-
-    btnFechar.addEventListener("click", function () {
-        modal.style.display = "none";
-    });
-
-    window.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    });
-    
-    document.getElementById('matricula').addEventListener('blur', async function() {
-        const matricula = this.value.trim();
-        if (matricula) {
             try {
-                const response = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
-                const data = await response.json();
+                // 1. Verifica Colaborador no Railway
+                const verificaColab = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
+                const colabData = await verificaColab.json();
                 
-                if (!data.encontrado) {
-                    alert('Colaborador não cadastrado!');
-                    document.getElementById('matricula').value = '';
-                    document.getElementById('matricula').focus();
+                if (!colabData.encontrado) {
+                    showMessage('Colaborador não cadastrado!', 'error');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Cadastrar';
+                    return;
                 }
-            } catch (error) {
-                console.error('Erro ao verificar colaborador:', error);
-            }
-        }
-    });
 
-    
+                // 2. Realiza o Cadastro
+                const response = await fetch(`${API_URL}/cadastrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matricula, coletor, turno, headset })
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Erro ao cadastrar');
+
+                showMessage(result.message || 'Cadastrado com sucesso!', 'success');
+                
+                // Limpa campos
+                matriculaInput.value = '';
+                coletorInput.value = '';
+                if (headsetInput) headsetInput.value = '';
+                
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Cadastrar';
+            }
+        });
+    }
+
+    // Cadastro de Novo Colaborador (Modal)
+    const colaboradorForm = document.getElementById('colaboradorForm');
+    if (colaboradorForm) {
+        colaboradorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const matricula = document.getElementById('matriculaColaborador').value.trim();
+            const nome = document.getElementById('nomeColaborador').value.trim();
+            const turno = document.getElementById('turnoColaborador').value;
+            const setor = document.getElementById('setorColaborador').value;
+
+            try {
+                const response = await fetch(`${API_URL}/cadastrarColaborador`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matricula, nome, turno, setor }),
+                });
+
+                if (!response.ok) throw new Error('Erro ao cadastrar colaborador.');
+
+                showMessage('Colaborador cadastrado!', 'success');
+                if (modal) modal.style.display = "none";
+                colaboradorForm.reset();
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        });
+    }
+
+    // Botão de Devolução Manual
+    if (devolverButton) {
+        devolverButton.addEventListener('click', async () => {
+            const coletor = devolucaoInput.value.trim();
+            if (!coletor) return showMessage('Informe o coletor!', 'error');
+            await devolveCollector(coletor);
+            devolucaoInput.value = '';
+        });
+    }
+
+    // Lógica do Modal
+    if (btnAbrir) btnAbrir.onclick = () => modal.style.display = "block";
+    if (btnFechar) btnFechar.onclick = () => modal.style.display = "none";
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
+
+    // Verificação rápida de matrícula ao sair do campo
+    if (matriculaInput) {
+        matriculaInput.addEventListener('blur', async function() {
+            const matricula = this.value.trim();
+            if (matricula) {
+                try {
+                    const response = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
+                    const data = await response.json();
+                    if (!data.encontrado) {
+                        showMessage('Colaborador não encontrado no sistema!', 'error');
+                    }
+                } catch (e) { console.error('Erro na verificação'); }
+            }
+        });
+    }
 });
