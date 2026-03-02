@@ -5,11 +5,12 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const cron = require('node-cron');
+
 const PORT = process.env.PORT || 3000;
 
 const app = express();
-app.listen(PORT, '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}`));
 
+// Middleware CORS
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -29,77 +30,99 @@ app.options('*', (req, res) => {
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- CONFIGURAÇÃO DO BANCO DE DADOS PARA RAILWAY ---
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+    console.error("❌ ERRO: A variável DATABASE_URL não foi encontrada!");
+    console.error("Verifique as 'Variables' no painel do Railway.");
+    process.exit(1);
+}
+
 const client = new Client({
-    connectionString: process.env.DATABASE_URL, // O Railway preenche isso sozinho se você tiver o banco lá
+    connectionString: connectionString,
     ssl: {
-        rejectUnauthorized: false // ESSA LINHA É O SEGREDO: ela permite a conexão segura sem dar erro de certificado
+        rejectUnauthorized: false // Obrigatório para Railway/Render
     }
 });
 
+// Conectar ao Banco
 client.connect(err => {
     if (err) {
-        console.error('Erro ao conectar no banco:', err);
+        console.error('❌ Erro ao conectar no banco:', err);
         process.exit(1);
     } else {
-        console.log('Conectado ao PostgreSQL');
+        console.log('✅ Conectado ao PostgreSQL do Railway');
+        
+        // Criar tabelas após conectar
+        criarTabelas();
     }
 });
 
-// Criação das tabelas (ATUALIZADA para incluir headset)
-client.query(`
-    CREATE TABLE IF NOT EXISTS coletores (
-        id SERIAL PRIMARY KEY,
-        matricula VARCHAR(255) NOT NULL,
-        coletor VARCHAR(255) NOT NULL,
-        turno VARCHAR(255) NOT NULL,
-        data DATE NOT NULL,
-        status VARCHAR(255) DEFAULT 'Pendente',
-        data_expiracao TIMESTAMP,
-        headset VARCHAR(255),
-        nome_colaborador VARCHAR(255)
-    );
-`, (err, res) => {
-    if (err) {
-        console.error('Erro ao criar/verificar tabela "coletores":', err);
-    } else {
-        console.log('Tabela "coletores" pronta.');
-    }
-});
+// Função para criar as tabelas
+async function criarTabelas() {
+    try {
+        // Tabela coletores (ATUALIZADA para incluir headset)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS coletores (
+                id SERIAL PRIMARY KEY,
+                matricula VARCHAR(255) NOT NULL,
+                coletor VARCHAR(255) NOT NULL,
+                turno VARCHAR(255) NOT NULL,
+                data DATE NOT NULL,
+                status VARCHAR(255) DEFAULT 'Pendente',
+                data_expiracao TIMESTAMP,
+                headset VARCHAR(255),
+                nome_colaborador VARCHAR(255)
+            );
+        `);
+        console.log('✅ Tabela "coletores" pronta.');
 
-client.query(`
-    CREATE TABLE IF NOT EXISTS colaboradores (
-        id SERIAL PRIMARY KEY,
-        matricula VARCHAR(255) NOT NULL,
-        nome VARCHAR(255) NOT NULL,
-        turno VARCHAR(255) NOT NULL,
-        setor VARCHAR(255) NOT NULL
-    );
-`, (err, res) => {
-    if (err) {
-        console.error('Erro ao criar/verificar tabela "colaboradores":', err);
-    } else {
-        console.log('Tabela "colaboradores" pronta.');
-    }
-});
+        // Tabela colaboradores
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS colaboradores (
+                id SERIAL PRIMARY KEY,
+                matricula VARCHAR(255) NOT NULL,
+                nome VARCHAR(255) NOT NULL,
+                turno VARCHAR(255) NOT NULL,
+                setor VARCHAR(255) NOT NULL
+            );
+        `);
+        console.log('✅ Tabela "colaboradores" pronta.');
 
-client.query(`
-    CREATE TABLE IF NOT EXISTS equipamentos (
-        id SERIAL PRIMARY KEY,
-        id_pulsus VARCHAR(255) NOT NULL,
-        identificador VARCHAR(255) NOT NULL,
-        patrimonio VARCHAR(255) NOT NULL,
-        numero VARCHAR(255) NOT NULL,
-        condicao VARCHAR(255) NOT NULL
-    );
-`, (err, res) => {
-    if (err) {
-        console.error('Erro ao criar/verificar tabela "equipamentos":', err);
-    } else {
-        console.log('Tabela "equipamentos" pronta.');
-    }
-});
+        // Tabela equipamentos (ATUALIZADA com as novas colunas)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS equipamentos (
+                id SERIAL PRIMARY KEY,
+                id_pulsus VARCHAR(255),
+                identificador VARCHAR(255) NOT NULL,
+                patrimonio VARCHAR(255),
+                numero VARCHAR(255),
+                condicao VARCHAR(255) NOT NULL,
+                tipo_equipamento VARCHAR(255),
+                propriedade VARCHAR(255)
+            );
+        `);
+        console.log('✅ Tabela "equipamentos" pronta.');
 
-// ROTA CORRIGIDA COM MENSAGEM SIMPLIFICADA
+        // Tabela historico_quebras (se for usar)
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS historico_quebras (
+                id SERIAL PRIMARY KEY,
+                coletor VARCHAR(255) NOT NULL,
+                matricula_responsavel VARCHAR(255) NOT NULL,
+                data TIMESTAMP DEFAULT NOW()
+            );
+        `);
+        console.log('✅ Tabela "historico_quebras" pronta.');
+
+    } catch (err) {
+        console.error('❌ Erro ao criar tabelas:', err);
+    }
+}
+
+// --- SUAS APIS (NÃO MEXI EM NADA, SÓ CORRIGI A ROTA PENDENTES) ---
+
 // ROTA DE CADASTRO COM VALIDAÇÕES DE SEGURANÇA
 app.post('/api/cadastrar', async (req, res) => {
     const { matricula, coletor, turno, headset } = req.body;
@@ -120,10 +143,7 @@ app.post('/api/cadastrar', async (req, res) => {
         }
         const nomeColaborador = colaboradorResult.rows[0].nome;
 
-
-
-        // 3. VERIFICAÇÃO: O Coletor existe na base de equipamentos e qual o status?
-        // Usamos o campo 'numero' ou 'identificador' dependendo de como você digita no formulário
+        // 2. VERIFICAÇÃO: O Coletor existe na base de equipamentos e qual o status?
         const equipamentoResult = await client.query(
             'SELECT condicao FROM equipamentos WHERE identificador = $1 OR numero = $1',
             [coletor]
@@ -136,7 +156,7 @@ app.post('/api/cadastrar', async (req, res) => {
             });
         }
 
-        // 4. VERIFICAÇÃO: O Coletor está quebrado?
+        // 3. VERIFICAÇÃO: O Coletor está quebrado?
         const condicao = equipamentoResult.rows[0].condicao.toLowerCase();
         if (condicao.includes('quebrado')) {
             return res.status(400).json({
@@ -145,7 +165,7 @@ app.post('/api/cadastrar', async (req, res) => {
             });
         }
 
-        // 5. BAIXA AUTOMÁTICA: Se o coletor estava com outra pessoa, libera ele
+        // 4. BAIXA AUTOMÁTICA: Se o coletor estava com outra pessoa, libera ele
         const coletorPendenteResult = await client.query(
             "SELECT id FROM coletores WHERE coletor = $1 AND status = 'Pendente'",
             [coletor]
@@ -159,7 +179,7 @@ app.post('/api/cadastrar', async (req, res) => {
             console.log(`Baixa automática realizada para o coletor: ${coletor}`);
         }
 
-        // 6. FINALMENTE: Realiza o novo cadastro
+        // 5. FINALMENTE: Realiza o novo cadastro
         const insertResult = await client.query(
             `INSERT INTO coletores 
             (matricula, coletor, turno, data, status, headset, nome_colaborador) 
@@ -198,13 +218,12 @@ app.get('/api/coletores', async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar dados' });
     }
 });
+
 app.post('/api/cadastrarEquipamento', async (req, res) => {
-    // 1. Pegamos todos os campos enviados pelo formulário
     const { idPulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade } = req.body;
 
     try {
         await client.query(
-            // 2. Atualizamos a query SQL para incluir as novas colunas
             'INSERT INTO equipamentos (id_pulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [idPulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade]
         );
@@ -214,8 +233,9 @@ app.post('/api/cadastrarEquipamento', async (req, res) => {
         res.status(500).json({ message: 'Erro ao cadastrar equipamento.' });
     }
 });
+
 app.put('/api/editarEquipamento/:id', async (req, res) => {
-    const { id } = req.params; // Esse é o id_pulsus antigo
+    const { id } = req.params;
     const { idPulsus, identificador, patrimonio, numero, condicao, tipo_equipamento, propriedade } = req.body;
 
     try {
@@ -231,6 +251,7 @@ app.put('/api/editarEquipamento/:id', async (req, res) => {
         res.status(500).json({ message: 'Erro ao editar equipamento.' });
     }
 });
+
 app.delete('/api/excluirEquipamento/:id', async (req, res) => {
     const { id } = req.params;
     try {
@@ -241,9 +262,9 @@ app.delete('/api/excluirEquipamento/:id', async (req, res) => {
         res.status(500).json({ message: 'Erro ao excluir equipamento.' });
     }
 });
+
 app.get('/api/stats-por-setor', async (req, res) => {
     try {
-        // SQL que busca o setor lá na tabela de colaboradores
         const query = `
             SELECT c.setor, COUNT(e.id) as total 
             FROM equipamentos e
@@ -257,6 +278,7 @@ app.get('/api/stats-por-setor', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
 app.get('/api/equipamentos', async (req, res) => {
     try {
         let query = 'SELECT * FROM equipamentos WHERE 1=1';
@@ -508,8 +530,9 @@ app.get('/api/verificarColaborador', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
 
-// ROTA CORRIGIDA PARA O SEU SERVIDOR (Backend)
+// ROTA PENDENTES CORRIGIDA
 app.get('/api/pendentes', async (req, res) => {
     try {
         const query = `
@@ -517,22 +540,27 @@ app.get('/api/pendentes', async (req, res) => {
                 c.coletor, 
                 c.matricula, 
                 c.turno,
-                c.data AS data_hora, -- GARANTE QUE O FRONTEND RECEBA 'data_hora'
+                c.data AS data_hora,
                 col.nome AS nome 
             FROM coletores c
             LEFT JOIN colaboradores col ON c.matricula = col.matricula 
-            WHERE c.status != 'Devolvido' 
+            WHERE c.status = 'Pendente'
             ORDER BY c.data DESC`;
         
-        // Use 'pool' ou 'db' conforme sua configuração lá no topo do arquivo
-        const result = await pool.query(query); 
-        const rows = result.rows || result; // Compatibilidade MySQL/Postgres
-
-        res.json(Array.isArray(rows) ? rows : []);
+        const result = await client.query(query);
+        res.json(result.rows);
     } catch (err) {
         console.error('ERRO NO SERVIDOR:', err.message);
-        res.status(500).json([]); // Retorna array vazio para não quebrar o .map()
+        res.status(500).json({ error: err.message });
     }
 });
+
+// Rota para o Frontend (SPA)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-                                
+
+// Iniciar servidor
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+});
