@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>GPA - Dashboard Equipamentos</title>
+    <title>GPA - Dashboard Coletores</title>
     <link rel="stylesheet" href="css/user.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
@@ -14,76 +14,72 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--main-bg); margin: 0; display: flex; }
 
-        .main-content { width: calc(100% - 180px); padding: 0; }
-        
         .dashboard-container { 
-            padding: 20px; 
+            padding: 25px; 
             display: flex; 
             flex-direction: row; 
-            justify-content: space-between; 
-            gap: 15px;
+            justify-content: center; 
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .secao-equipamento { 
             flex: 1; 
             background: white;
-            padding: 20px 15px;
+            padding: 30px 20px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .secao-equipamento h3 { 
-            font-size: 16px;
+            font-size: 18px;
             text-transform: uppercase; 
-            margin-bottom: 20px; 
+            margin-bottom: 25px; 
             color: var(--primary-bg);
-            border-bottom: 2px solid var(--main-bg);
-            padding-bottom: 10px;
+            border-bottom: 3px solid var(--main-bg);
+            padding-bottom: 12px;
         }
 
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; 
-            margin-bottom: 20px;
-        }
-
-        .stat-box {
-            display: flex;
-            flex-direction: column;
+            gap: 15px; 
+            margin-bottom: 25px;
         }
 
         .stat-label { 
-            font-size: 10px; 
+            font-size: 11px; 
             font-weight: bold; 
-            color: #555; 
+            color: #666; 
             text-transform: uppercase; 
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            display: block;
         }
 
         .stat-value { 
             background: var(--card-bg); 
-            height: 45px; 
-            border-radius: 8px; 
+            height: 55px; 
+            border-radius: 10px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-weight: bold; 
-            font-size: 18px;
+            font-size: 20px;
             color: #02253B;
         }
 
         .total-geral {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #ccc;
+            margin-top: 15px;
+            padding-top: 20px;
+            border-top: 1px dashed #bbb;
         }
 
         .total-geral .stat-value { 
-            width: 100%; height: 50px; 
+            width: 100%; height: 65px; 
             background: var(--primary-bg); color: white;
-            font-size: 22px;
+            font-size: 28px;
         }
     </style>
 </head>
@@ -108,7 +104,7 @@
 
     <main class="conteudo-principal">
         <header class="conteudo-header">
-            <h1 class="header-title">Dashboard de Equipamentos</h1>
+            <h1 class="header-title">Controle de Coletores</h1>
         </header>
 
         <div class="dashboard-container">
@@ -133,34 +129,20 @@
                 </div>
                 <div class="total-geral"><span class="stat-label">Total Geral</span><div class="stat-value" id="mc90-total">0</div></div>
             </div>
-
-            <div class="secao-equipamento">
-                <h3>Talkman</h3>
-                <div class="stats-grid">
-                    <div class="stat-box"><span class="stat-label">Operando/Próprio</span><div class="stat-value" id="tk-op-pr">0</div></div>
-                    <div class="stat-box"><span class="stat-label">Quebrado</span><div class="stat-value" id="tk-qb">0</div></div>
-                    <div class="stat-box"><span class="stat-label">Alugados</span><div class="stat-value" id="tk-al">0</div></div>
-                    <div class="stat-box"><span class="stat-label">Parado</span><div class="stat-value" id="tk-pa">0</div></div>
-                </div>
-                <div class="total-geral"><span class="stat-label">Total Geral</span><div class="stat-value" id="tk-total">0</div></div>
-            </div>
         </div>
     </main>
 
     <script>
         async function carregarDashboard() {
             try {
-                // Rota unificada para pegar todos os equipamentos
                 const response = await fetch('/api/equipamentos');
                 if (!response.ok) throw new Error('Erro ao buscar dados');
                 
                 const dados = await response.json();
 
-                // Objeto para armazenar as contagens
                 const resumo = {
                     mc32: { opPr: 0, qb: 0, al: 0, em: 0, total: 0 },
-                    mc90: { opPr: 0, qb: 0, al: 0, em: 0, total: 0 },
-                    tk:   { opPr: 0, qb: 0, al: 0, pa: 0, total: 0 }
+                    mc90: { opPr: 0, qb: 0, al: 0, em: 0, total: 0 }
                 };
 
                 dados.forEach(item => {
@@ -169,64 +151,38 @@
                     const prop = (item.propriedade || "").toLowerCase();
 
                     let cat = null;
-                    
-                    // Lógica de Categorização por Modelo
                     if (tipo.includes("3290")) cat = "mc32";
                     else if (tipo.includes("9090")) cat = "mc90";
-                    else if (tipo.includes("TALKMAN") || tipo.includes("ZEBRA")) cat = "tk";
 
                     if (cat) {
                         resumo[cat].total++;
-                        
-                        // 1. Operando + Próprio
                         if (cond.includes("operando") && (prop.includes("proprio") || prop.includes("próprio"))) {
                             resumo[cat].opPr++;
                         }
-                        
-                        // 2. Quebrado
                         if (cond.includes("quebrado")) resumo[cat].qb++;
-                        
-                        // 3. Alugado
                         if (prop.includes("alugado")) resumo[cat].al++;
-                        
-                        // 4. Específicos (Emprestado para Coletores / Parado para Talkman)
-                        if (cat !== "tk" && prop.includes("emprestado")) {
-                            resumo[cat].em++;
-                        }
-                        
-                        if (cat === "tk" && (cond.includes("parado") || cond.includes("manuten"))) {
-                            resumo[cat].pa++;
-                        }
+                        if (prop.includes("emprestado")) resumo[cat].em++;
                     }
                 });
 
-                // Função para atualizar o DOM
                 const atualizarDOM = (prefix, obj) => {
-                    const fields = ['op-pr', 'qb', 'al', 'total', 'em', 'pa'];
-                    fields.forEach(f => {
-                        const el = document.getElementById(`${prefix}-${f}`);
-                        if (el) {
-                            // Mapeia os nomes das propriedades do objeto 'resumo' para os sufixos dos IDs
-                            const propMap = { 'op-pr': 'opPr', 'qb': 'qb', 'al': 'al', 'total': 'total', 'em': 'em', 'pa': 'pa' };
-                            el.innerText = obj[propMap[f]] || 0;
-                        }
-                    });
+                    document.getElementById(`${prefix}-op-pr`).innerText = obj.opPr;
+                    document.getElementById(`${prefix}-qb`).innerText = obj.qb;
+                    document.getElementById(`${prefix}-al`).innerText = obj.al;
+                    document.getElementById(`${prefix}-em`).innerText = obj.em;
+                    document.getElementById(`${prefix}-total`).innerText = obj.total;
                 };
 
                 atualizarDOM('mc32', resumo.mc32);
                 atualizarDOM('mc90', resumo.mc90);
-                atualizarDOM('tk', resumo.tk);
 
             } catch (e) {
-                console.error("Erro no carregamento do Dashboard:", e);
+                console.error("Erro no Dashboard:", e);
             }
         }
 
-        // Carrega ao abrir a página
         window.onload = carregarDashboard;
-        
-        // Opcional: Atualiza a cada 30 segundos sozinho
-        setInterval(carregarDashboard, 30000);
+        setInterval(carregarDashboard, 30000); // Auto-refresh 30s
     </script>
 </body>
 </html>
