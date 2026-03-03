@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const coletor = coletorInput ? coletorInput.value.trim() : '';
             const headset = headsetInput ? headsetInput.value.trim() : '';
             // Ajustado: define como vazio já que não tem mais no HTML
-            const turno = ""; 
+            const turno = "GERAL"; 
 
             if (!matricula || !coletor) {
                 showMessage('Preencha Matrícula e Coletor.', 'error');
