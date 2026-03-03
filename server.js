@@ -274,6 +274,69 @@ app.get('/api/equipamentos', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// --- NOVAS ROTAS PARA EQUIPAMENTOS (EDITAR E EXCLUIR) ---
+
+// Rota para EDITAR equipamento
+app.put('/api/equipamentos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { identificador, condicao, tipo_equipamento, propriedade, idPulsus, patrimonio, numero } = req.body;
+
+    try {
+        const result = await client.query(
+            `UPDATE equipamentos 
+             SET identificador = $1, condicao = $2, tipo_equipamento = $3, propriedade = $4, 
+                 id_pulsus = $5, patrimonio = $6, numero = $7 
+             WHERE id = $8 RETURNING *`,
+            [identificador, condicao, tipo_equipamento, propriedade, idPulsus, patrimonio, numero, id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Equipamento não encontrado' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Equipamento atualizado com sucesso',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar equipamento:', error);
+        res.status(500).json({ message: 'Erro ao atualizar equipamento' });
+    }
+});
+
+// Rota para EXCLUIR equipamento
+app.delete('/api/equipamentos/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Opcional: Verificar se o equipamento está em uso (pendente) na tabela coletores antes de excluir
+        const checkUso = await client.query(
+            "SELECT * FROM coletores WHERE coletor = (SELECT identificador FROM equipamentos WHERE id = $1) AND status = 'Pendente'",
+            [id]
+        );
+
+        if (checkUso.rowCount > 0) {
+            return res.status(400).json({ 
+                message: 'Não é possível excluir um coletor que está emprestado no momento.' 
+            });
+        }
+
+        const result = await client.query('DELETE FROM equipamentos WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Equipamento não encontrado' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Equipamento excluído com sucesso'
+        });
+    } catch (error) {
+        console.error('Erro ao excluir equipamento:', error);
+        res.status(500).json({ message: 'Erro interno ao excluir equipamento' });
+    }
+});
 // Rota para deletar colaborador
 app.delete('/api/colaboradores/:matricula', async (req, res) => {
     const { matricula } = req.params;
