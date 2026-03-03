@@ -84,6 +84,7 @@
                             <select id="tipo_equipamento" class="form-control" required>
                                 <option value="MC9090">MC9090</option>
                                 <option value="MC3290">MC3290</option>
+                                <option value="ZEBRA">ZEBRA</option>
                             </select>
                         </div>
 
@@ -115,6 +116,34 @@
 
     <script>
         let listaEquipamentos = [];
+        // Se o erro 404 persistir, tente mudar essa linha para const API_BASE = '';
+        const API_BASE = '/api'; 
+
+        async function carregarDados() {
+            try {
+                const res = await fetch(`${API_BASE}/equipamentos`);
+                if (!res.ok) throw new Error('Falha ao carregar');
+                listaEquipamentos = await res.json();
+                exibirDados(listaEquipamentos);
+            } catch (err) { console.error("Erro ao carregar:", err); }
+        }
+
+        function exibirDados(dados) {
+            const tabela = document.getElementById('dataTable1');
+            tabela.innerHTML = dados.map(item => `
+                <tr>    
+                    <td>${item.identificador}</td>
+                    <td><span class="status ${item.condicao ? item.condicao.toLowerCase() : ''}">${item.condicao}</span></td>
+                    <td>${item.tipo_equipamento || '-'}</td>
+                    <td><span class="propriedade-badge">${item.propriedade}</span></td>
+                    <td>
+                        <button onclick="abrirModalEdicao('${item.id}')" style="padding: 5px 10px; cursor: pointer; border-radius: 4px; border: 1px solid #ddd;">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
 
         function abrirModalCadastro() {
             document.getElementById('modalTitulo').innerText = "Cadastrar Equipamento";
@@ -131,9 +160,9 @@
             document.getElementById('modalTitulo').innerText = "Editar Equipamento";
             document.getElementById('editId').value = item.id;
             document.getElementById('identificador').value = item.identificador;
-            document.getElementById('tipo_equipamento').value = item.tipo_equipamento || "MOTOROLA";
-            document.getElementById('propriedade').value = item.propriedade || "Próprio";
-            document.getElementById('condicao').value = item.condicao || "Operando";
+            document.getElementById('tipo_equipamento').value = item.tipo_equipamento;
+            document.getElementById('propriedade').value = item.propriedade;
+            document.getElementById('condicao').value = item.condicao;
             
             document.getElementById('btnExcluir').style.display = "block";
             document.getElementById('modalCadastro').style.display = "flex";
@@ -143,7 +172,7 @@
             document.getElementById('modalCadastro').style.display = "none";
         }
 
-        // SALVAR
+        // SALVAR (CADASTRO E EDIÇÃO)
         document.getElementById('formCadastro').addEventListener('submit', async function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value;
@@ -153,11 +182,12 @@
                 tipo_equipamento: document.getElementById('tipo_equipamento').value,
                 propriedade: document.getElementById('propriedade').value,
                 condicao: document.getElementById('condicao').value,
-                // Mantendo compatibilidade com o backend
+                // Mantém compatibilidade com campos antigos do banco se necessário
                 idPulsus: "", patrimonio: "", numero: "" 
             };
 
-            const url = editId ? `/api/equipamentos/${editId}` : '/api/cadastrarEquipamento';
+            // Se tem editId, usa a rota de equipamentos/ID, senão usa cadastrarEquipamento
+            const url = editId ? `${API_BASE}/equipamentos/${editId}` : `${API_BASE}/cadastrarEquipamento`;
             const method = editId ? 'PUT' : 'POST';
 
             try {
@@ -171,49 +201,26 @@
                     fecharModalCadastro();
                     carregarDados();
                 } else {
-                    alert("Erro ao salvar. Verifique o console.");
+                    const msg = await res.text();
+                    alert("Erro no servidor: " + msg);
                 }
-            } catch (err) { console.error('Erro:', err); }
+            } catch (err) { console.error('Erro ao salvar:', err); }
         });
 
         // EXCLUIR
         async function excluirEquipamento() {
             const id = document.getElementById('editId').value;
-            if (!confirm(`Excluir este equipamento?`)) return;
+            if (!id || !confirm("Tem certeza que deseja excluir?")) return;
 
             try {
-                const res = await fetch(`/api/equipamentos/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API_BASE}/equipamentos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
                     fecharModalCadastro();
                     carregarDados();
+                } else {
+                    alert("Erro ao excluir. Verifique a rota no servidor.");
                 }
-            } catch (err) { console.error('Erro:', err); }
-        }
-
-        // CARREGAR
-        async function carregarDados() {
-            try {
-                const res = await fetch('/api/equipamentos');
-                listaEquipamentos = await res.json();
-                exibirDados(listaEquipamentos);
-            } catch (err) { console.error("Erro ao carregar:", err); }
-        }
-
-        function exibirDados(dados) {
-            const tabela = document.getElementById('dataTable1');
-            tabela.innerHTML = dados.map(item => `
-                <tr>    
-                    <td>${item.identificador}</td>
-                    <td><span class="status ${item.condicao.toLowerCase()}">${item.condicao}</span></td>
-                    <td>${item.tipo_equipamento || '-'}</td>
-                    <td><span class="propriedade-badge">${item.propriedade}</span></td>
-                    <td>
-                        <button onclick="abrirModalEdicao('${item.id}')" class="btn-alterar-status-2" style="padding: 5px; cursor: pointer;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            } catch (err) { console.error('Erro ao excluir:', err); }
         }
 
         function filtrarTabela() {
