@@ -1,285 +1,268 @@
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>GPA - Controle de Equipamentos</title>
-        <link rel="stylesheet" href="css/user.css">
-        <link rel="icon" href="img/GPA2.png" type="image/x-icon">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-        <style>
-            /* Ajustes de Layout e Modal */
-            .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
-            .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 550px; position: relative; }
-            .form-row-double { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-            .form-group { margin-bottom: 12px; }
-            .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; }
-            .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-            
-            /* Badges de Status */
-            .status { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-            .status.operando { background: #e3fcef; color: #155724; }
-            .status.quebrado { background: #ffe3e3; color: #721c24; }
-            .propriedade-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
-            .propriedade-badge.alugado { background: #e3f2fd; color: #0d47a1; }
-
-            .btn-excluir { background: #dc3545; color: white; margin-top: 10px; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; }
-            .btn-excluir:hover { background: #a71d2a; }
-            
-            .acoes-flex { display: flex; gap: 5px; }
-        </style>
-    </head>
-    <body>
-        <div class="container-principal">
-            <aside class="menu-lateral">
-                <div class="menu-header">
-                    <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
-                    <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
-                </div>
-                <nav class="menu-items">
-                    <a href="index.html" class="menu-item">
-                        <i class="fas fa-home menu-icon"></i>
-                        <span class="menu-text">Início</span>
-                    </a>
-                    <a href="dashboard.html" class="menu-item">
-                        <i class="fas fa-history menu-icon"></i>
-                        <span class="menu-text">Histórico</span>
-                    </a>
-                    <a href="Usuario.html" class="menu-item">
-                        <i class="fas fa-users menu-icon"></i>
-                        <span class="menu-text">Usuários</span>
-                    </a>
-                    <a href="coletores.html" class="menu-item" style="background-color: #fff; color: #02253B ;">
-                        <i class="fas fa-barcode menu-icon"></i>
-                        <span class="menu-text">Coletores</span>
-                    </a>
-                    <a href="dashboard_equipamentos.html" class="menu-item">
-                        <i class="fas fa-chart-bar menu-icon"></i>
-                    <span class="menu-text">Dashboard</span>
-                </a>
-                    <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
-                </nav>
-            
-            </aside>
-
-            <main class="conteudo-principal">
-                <header class="conteudo-header">
-                    <h1 class="header-title">Controle de Equipamentos</h1> 
-                </header>
-
-                <div class="table-controls">
-                    <button onclick="abrirModalCadastro()" class="cadastrar-usuario-btn"><i class="fas fa-plus"></i> Adicionar Coletor</button>
-                    <div class="search-container">
-                        <input type="text" id="inputBusca" placeholder="Pesquisar..." onkeyup="filtrarTabela()">
-                        <button class="search-btn"><i class="fas fa-search"></i></button>
-                    </div>
-                </div>
-                
-                <div class="teste">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID Pulsus</th>
-                                <th>Identificador CD</th>
-                                <th>Patrimônio</th>
-                                <th>Nº Série</th>
-                                <th>Condição</th>
-                                <th>Tipo</th>
-                                <th>Propriedade</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dataTable1"></tbody> 
-                    </table>
-                </div>
-
-                <div id="modalCadastro" class="modal">
-                    <div class="modal-content">
-                        <span class="close" onclick="fecharModalCadastro()">&times;</span>
-                        <h2 id="modalTitulo">Cadastrar Equipamento</h2>
-                        <form id="formCadastro">
-                            <input type="hidden" id="editId"> <div class="form-row-double">
-                                <div class="form-group">
-                                    <label>ID Pulsus*</label>
-                                    <input type="text" id="id_pulsus" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Identificador CD*</label>
-                                    <input type="text" id="identificador" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="form-row-double">
-                                <div class="form-group">
-                                    <label>Patrimônio*</label>
-                                    <input type="text" id="patrimonio" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Número de Série*</label>
-                                    <input type="text" id="numero" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Tipo de Equipamento*</label>
-                                <select id="tipo_equipamento" class="form-control" required>
-                                    <option value="MC3300x">MC3300x</option>
-                                    <option value="MC9090">MC9090</option>
-                                    <option value="TALKMAN">TALKMAN</option>
-                                    <option value="HEADSET">HEADSET</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Propriedade*</label>
-                                <select id="propriedade" class="form-control">
-                                    <option value="Próprio">Próprio</option>
-                                    <option value="Alugado">Alugado</option>
-                                    <option value="Emprestado">Emprestado</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Condição*</label>
-                                <select id="condicao" class="form-control">
-                                    <option value="Operando">Operando</option>
-                                    <option value="Quebrado">Quebrado</option>
-                                    <option value="Parado">Parado</option>
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn-primary" id="btnSalvar">Salvar Equipamento</button>
-                            <button type="button" id="btnExcluir" class="btn-excluir" style="display:none;" onclick="excluirEquipamento()">Excluir Equipamento</button>
-                        </form>
-                    </div>
-                </div>
-            </main>
-        </div>
-
-        <script>
-            let listaEquipamentos = [];
-
-            // --- ABRIR MODAL PARA CADASTRO ---
-            function abrirModalCadastro() {
-                document.getElementById('modalTitulo').innerText = "Cadastrar Equipamento";
-                document.getElementById('formCadastro').reset();
-                document.getElementById('editId').value = "";
-                document.getElementById('btnExcluir').style.display = "none";
-                document.getElementById('modalCadastro').style.display = "flex";
-            }
-
-            // --- ABRIR MODAL PARA EDIÇÃO ---
-            function abrirModalEdicao(idPulsus) {
-                const item = listaEquipamentos.find(e => e.id_pulsus === idPulsus);
-                if (!item) return;
-
-                document.getElementById('modalTitulo').innerText = "Editar Equipamento";
-                document.getElementById('editId').value = item.id_pulsus;
-                document.getElementById('id_pulsus').value = item.id_pulsus;
-                document.getElementById('identificador').value = item.identificador;
-                document.getElementById('patrimonio').value = item.patrimonio;
-                document.getElementById('numero').value = item.numero;
-                document.getElementById('tipo_equipamento').value = item.tipo_equipamento || item.tipo || "";
-                document.getElementById('propriedade').value = item.propriedade;
-                document.getElementById('condicao').value = item.condicao;
-                
-                document.getElementById('btnExcluir').style.display = "block";
-                document.getElementById('modalCadastro').style.display = "flex";
-            }
-
-            function fecharModalCadastro() {
-                document.getElementById('modalCadastro').style.display = "none";
-            }
-
-            // --- SALVAR (CADASTRO OU EDIÇÃO) ---
-    // --- SALVAR (CADASTRO OU EDIÇÃO) SEM MENSAGEM ---
-    document.getElementById('formCadastro').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const editId = document.getElementById('editId').value;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPA - Controle de Equipamentos</title>
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="icon" href="img/GPA2.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Ajustes de Layout e Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 550px; position: relative; }
+        .form-row-double {  grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
         
-        const dados = {
-            idPulsus: document.getElementById('id_pulsus').value,
-            identificador: document.getElementById('identificador').value,
-            patrimonio: document.getElementById('patrimonio').value,
-            numero: document.getElementById('numero').value,
-            tipo_equipamento: document.getElementById('tipo_equipamento').value,
-            propriedade: document.getElementById('propriedade').value,
-            condicao: document.getElementById('condicao').value
-        };
+        /* Badges de Status */
+        .status { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status.operando { background: #e3fcef; color: #155724; }
+        .status.quebrado { background: #ffe3e3; color: #721c24; }
+        .propriedade-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
+        .propriedade-badge.alugado { background: #e3f2fd; color: #0d47a1; }
 
-        const url = editId ? `/api/editarEquipamento/${editId}` : '/api/cadastrarEquipamento';
-        const method = editId ? 'PUT' : 'POST';
+        .btn-excluir { background: #dc3545; color: white; margin-top: 10px; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; }
+        .btn-excluir:hover { background: #a71d2a; }
+        
+        .acoes-flex { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container-principal">
+        <aside class="menu-lateral">
+            <div class="menu-header">
+                <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+                <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
+            </div>
+            <nav class="menu-items">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home menu-icon"></i>
+                    <span class="menu-text">Início</span>
+                </a>
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-text">Histórico</span>
+                </a>
+                <a href="Usuario.html" class="menu-item">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Usuários</span>
+                </a>
+                <a href="coletores.html" class="menu-item" style="background-color: #fff; color: #02253B ;">
+                    <i class="fas fa-barcode menu-icon"></i>
+                    <span class="menu-text">Coletores</span>
+                </a>
+                <a href="dashboard_equipamentos.html" class="menu-item">
+                    <i class="fas fa-chart-bar menu-icon"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+                <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+            </nav>
+           
+        </aside>
 
-        try {
-            const res = await fetch(url, {
-                method: method,
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(dados)
-            });
+        <main class="conteudo-principal">
+            <header class="conteudo-header">
+                <h1 class="header-title">Controle de Equipamentos</h1> 
+            </header>
 
-            if (res.ok) {
-                // Removemos o alert daqui
-                fecharModalCadastro();
-                carregarDados(); // Atualiza a tabela sozinho
-            }
-        } catch (err) { 
-            console.error('Erro ao salvar:', err); 
+            <div class="table-controls">
+                <button onclick="abrirModalCadastro()" class="cadastrar-usuario-btn"><i class="fas fa-plus"></i> Adicionar Coletor</button>
+                <div class="search-container">
+                    <input type="text" id="inputBusca" placeholder="Pesquisar..." onkeyup="filtrarTabela()">
+                    <button class="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            
+            <div class="teste">
+                <table>
+                    <thead>
+                        <tr>
+
+                            <th>Identificador CD</th>
+                            <th>Condição</th>
+                            <th>Tipo</th>
+                            <th>Propriedade</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable1"></tbody> 
+                </table>
+            </div>
+
+            <div id="modalCadastro" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="fecharModalCadastro()">&times;</span>
+                    <h2 id="modalTitulo">Cadastrar Equipamento</h2>
+                    <form id="formCadastro">
+                        <input type="hidden" id="editId"> <div class="form-row-double">
+
+                            <div class="form-group">
+                                <label>Identificador CD*</label>
+                                <input type="text" id="identificador" class="form-control" required>
+                            </div>
+                        </div>
+
+                        
+
+                        <div class="form-group">
+                            <label>Tipo de Equipamento*</label>
+                            <select id="tipo_equipamento" class="form-control" required>
+                                <option value="MOTOROLA">MOTOROLA</option>
+                                <option value="SYMBOL">SYMBOL</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Propriedade*</label>
+                            <select id="propriedade" class="form-control">
+                                <option value="Próprio">Próprio</option>
+                                <option value="Alugado">Alugado</option>
+                                <option value="Emprestado">Emprestado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Condição*</label>
+                            <select id="condicao" class="form-control">
+                                <option value="Operando">Operando</option>
+                                <option value="Quebrado">Quebrado</option>
+                                <option value="Parado">Parado</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="btnSalvar">Salvar Equipamento</button>
+                        <button type="button" id="btnExcluir" class="btn-excluir" style="display:none;" onclick="excluirEquipamento()">Excluir Equipamento</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let listaEquipamentos = [];
+
+        // --- ABRIR MODAL PARA CADASTRO ---
+        function abrirModalCadastro() {
+            document.getElementById('modalTitulo').innerText = "Cadastrar Equipamento";
+            document.getElementById('formCadastro').reset();
+            document.getElementById('editId').value = "";
+            document.getElementById('btnExcluir').style.display = "none";
+            document.getElementById('modalCadastro').style.display = "flex";
         }
-    });
 
-    // --- EXCLUIR SEM MENSAGEM ---
-    async function excluirEquipamento() {
-        const id = document.getElementById('editId').value;
-        // Mantive apenas o confirm para evitar exclusões acidentais, mas se quiser tirar, basta apagar a linha abaixo
-        if (!confirm(`Deseja realmente excluir o item ${id}?`)) return;
+        // --- ABRIR MODAL PARA EDIÇÃO ---
+        function abrirModalEdicao(idPulsus) {
+            const item = listaEquipamentos.find(e => e.id_pulsus === idPulsus);
+            if (!item) return;
 
-        try {
-            const res = await fetch(`/api/excluirEquipamento/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                fecharModalCadastro();
-                carregarDados();
-            }
-        } catch (err) { 
-            console.error('Erro ao excluir:', err); 
+            document.getElementById('modalTitulo').innerText = "Editar Equipamento";
+            document.getElementById('editId').value = item.id_pulsus;
+            document.getElementById('id_pulsus').value = item.id_pulsus;
+            document.getElementById('identificador').value = item.identificador;
+            document.getElementById('patrimonio').value = item.patrimonio;
+            document.getElementById('numero').value = item.numero;
+            document.getElementById('tipo_equipamento').value = item.tipo_equipamento || item.tipo || "";
+            document.getElementById('propriedade').value = item.propriedade;
+            document.getElementById('condicao').value = item.condicao;
+            
+            document.getElementById('btnExcluir').style.display = "block";
+            document.getElementById('modalCadastro').style.display = "flex";
         }
+
+        function fecharModalCadastro() {
+            document.getElementById('modalCadastro').style.display = "none";
+        }
+
+        // --- SALVAR (CADASTRO OU EDIÇÃO) ---
+// --- SALVAR (CADASTRO OU EDIÇÃO) SEM MENSAGEM ---
+document.getElementById('formCadastro').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const editId = document.getElementById('editId').value;
+    
+    const dados = {
+        idPulsus: document.getElementById('id_pulsus').value,
+        identificador: document.getElementById('identificador').value,
+        patrimonio: document.getElementById('patrimonio').value,
+        numero: document.getElementById('numero').value,
+        tipo_equipamento: document.getElementById('tipo_equipamento').value,
+        propriedade: document.getElementById('propriedade').value,
+        condicao: document.getElementById('condicao').value
+    };
+
+    const url = editId ? `/api/editarEquipamento/${editId}` : '/api/cadastrarEquipamento';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            // Removemos o alert daqui
+            fecharModalCadastro();
+            carregarDados(); // Atualiza a tabela sozinho
+        }
+    } catch (err) { 
+        console.error('Erro ao salvar:', err); 
     }
+});
 
-            // --- CARREGAR DADOS ---
-            async function carregarDados() {
-                const res = await fetch('/api/equipamentos');
-                listaEquipamentos = await res.json();
-                exibirDados(listaEquipamentos);
-            }
+// --- EXCLUIR SEM MENSAGEM ---
+async function excluirEquipamento() {
+    const id = document.getElementById('editId').value;
+    // Mantive apenas o confirm para evitar exclusões acidentais, mas se quiser tirar, basta apagar a linha abaixo
+    if (!confirm(`Deseja realmente excluir o item ${id}?`)) return;
 
-            function exibirDados(dados) {
-                const tabela = document.getElementById('dataTable1');
-                tabela.innerHTML = dados.map(item => `
-                    <tr>
-                        <td>${item.id_pulsus}</td>
-                        <td>${item.identificador}</td>
-                        <td>${item.patrimonio}</td>
-                        <td>${item.numero}</td>
-                        <td><span class="status ${item.condicao.toLowerCase()}">${item.condicao}</span></td>
-                        <td>${item.tipo_equipamento || item.tipo || '-'}</td>
-                        <td><span class="propriedade-badge">${item.propriedade}</span></td>
-                        <td>
-                            <button onclick="abrirModalEdicao('${item.id_pulsus}')" class="btn-alterar-status-2">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            }
+    try {
+        const res = await fetch(`/api/excluirEquipamento/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            fecharModalCadastro();
+            carregarDados();
+        }
+    } catch (err) { 
+        console.error('Erro ao excluir:', err); 
+    }
+}
 
-            function filtrarTabela() {
-                const busca = document.getElementById('inputBusca').value.toUpperCase();
-                const filtrados = listaEquipamentos.filter(i => 
-                    Object.values(i).some(val => String(val).toUpperCase().includes(busca))
-                );
-                exibirDados(filtrados);
-            }
+        // --- CARREGAR DADOS ---
+        async function carregarDados() {
+            const res = await fetch('/api/equipamentos');
+            listaEquipamentos = await res.json();
+            exibirDados(listaEquipamentos);
+        }
 
-            window.onload = carregarDados;
-        </script>
-    </body>
-    </html>
+        function exibirDados(dados) {
+            const tabela = document.getElementById('dataTable1');
+            tabela.innerHTML = dados.map(item => `
+                <tr>    
+                    <td>${item.identificador}</td>
+                    <td>${item.patrimonio}</td>
+                    <td>${item.numero}</td>
+                    <td><span class="status ${item.condicao.toLowerCase()}">${item.condicao}</span></td>
+                    <td>${item.tipo_equipamento || item.tipo || '-'}</td>
+                    <td><span class="propriedade-badge">${item.propriedade}</span></td>
+                    <td>
+                        <button onclick="abrirModalEdicao('${item.id_pulsus}')" class="btn-alterar-status-2">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filtrarTabela() {
+            const busca = document.getElementById('inputBusca').value.toUpperCase();
+            const filtrados = listaEquipamentos.filter(i => 
+                Object.values(i).some(val => String(val).toUpperCase().includes(busca))
+            );
+            exibirDados(filtrados);
+        }
+
+        window.onload = carregarDados;
+    </script>
+</body>
+</html>
