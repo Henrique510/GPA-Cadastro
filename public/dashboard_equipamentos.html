@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>GPA - Dashboard Histórico</title>
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #02253B;
+            --main-bg: #F4F7F9;
+            --card-bg: #EAEAEA;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--main-bg); margin: 0; display: flex; }
+
+        .sidebar { width: 180px; background: var(--primary-bg); height: 100vh; color: white; position: fixed; }
+        .sidebar-logo { padding: 20px; font-weight: bold; font-size: 20px; border-bottom: 1px solid #1a3a4f; }
+        .nav-item { padding: 15px 20px; display: flex; align-items: center; color: white; text-decoration: none; font-size: 14px; }
+        .nav-item:hover, .nav-item.active { background: white; color: var(--primary-bg); }
+
+        .main-content { width: calc(100% - 180px); padding: 0; }
+        .header-top { background: white; padding: 15px 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .dashboard-container { 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: space-between; 
+            gap: 10px;
+        }
+        
+        .secao-equipamento { 
+            flex: 1; 
+            background: white;
+            padding: 20px 10px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .secao-equipamento h3 { 
+            font-size: 14px;
+            text-transform: uppercase; 
+            margin-bottom: 20px; 
+            color: var(--primary-bg);
+            height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 10px; 
+            margin-bottom: 20px;
+        }
+
+        .stat-label { 
+            font-size: 9px; 
+            font-weight: bold; 
+            color: #02253B; 
+            text-transform: uppercase; 
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .stat-value { 
+            background: var(--card-bg); 
+            height: 45px; 
+            border-radius: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 16px;
+            color: #444;
+        }
+
+        .total-geral .stat-value { 
+            width: 80%; margin: 0 auto; height: 50px; 
+            background: var(--primary-bg); color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="menu-lateral">
+            <div class="menu-header">
+                <img src="img/GPA.png" alt="Logo GPA" class="logo-menu" id="logo-gpa">
+                <button class="minimizar-menu" id="minimizar-menu"><i class="fas fa-bars"></i></button>
+            </div>
+            <nav class="menu-items">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home menu-icon"></i>
+                    <span class="menu-text">Início</span>
+                </a>
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fas fa-history menu-icon"></i>
+                    <span class="menu-text">Histórico</span>
+                </a>
+                <a href="Usuario.html" class="menu-item">
+                    <i class="fas fa-users menu-icon"></i>
+                    <span class="menu-text">Usuários</span>
+                </a>
+                <a href="coletores.html" class="menu-item" >
+                    <i class="fas fa-barcode menu-icon"></i>
+                    <span class="menu-text">Coletores</span>
+                </a>
+                <a href="dashboard_equipamentos.html" class="menu-item" style="background-color: #fff; color: #02253B ;">
+                    <i class="fas fa-chart-bar menu-icon"></i>
+                <span class="menu-text">Dashboard</span>
+            </a>
+                <h4 style="display: flex; justify-content: center; padding-top: 280px; color: #fff;" >Dev: Henrique Dias</h4>
+            </nav>
+           
+        </aside>
+<main class="conteudo-principal">
+        <header class="conteudo-header">
+            <h1 class="header-title">Dashboard Equipamentos</h1>
+        </header>
+<body>
+
+        <div class="dashboard-container">
+            <div class="secao-equipamento">
+                <h3>Coletor MC3300x</h3>
+                <div class="stats-grid">
+                    <div class="stat-box"><span class="stat-label">Operando/Próprio</span><div class="stat-value" id="mc33-op-pr">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Quebrado</span><div class="stat-value" id="mc33-qb">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Alugados</span><div class="stat-value" id="mc33-al">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Emprestado</span><div class="stat-value" id="mc33-em">0</div></div>
+                </div>
+                <div class="total-geral"><span class="stat-label">Total Geral</span><div class="stat-value" id="mc33-total">0</div></div>
+            </div>
+
+            <div class="secao-equipamento">
+                <h3>Coletor MC9090</h3>
+                <div class="stats-grid">
+                    <div class="stat-box"><span class="stat-label">Operando/Próprio</span><div class="stat-value" id="mc90-op-pr">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Quebrado</span><div class="stat-value" id="mc90-qb">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Alugados</span><div class="stat-value" id="mc90-al">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Emprestado</span><div class="stat-value" id="mc90-em">0</div></div>
+                </div>
+                <div class="total-geral"><span class="stat-label">Total Geral</span><div class="stat-value" id="mc90-total">0</div></div>
+            </div>
+
+            <div class="secao-equipamento">
+                <h3>Talkman</h3>
+                <div class="stats-grid">
+                    <div class="stat-box"><span class="stat-label">Operando/Próprio</span><div class="stat-value" id="tk-op-pr">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Quebrado</span><div class="stat-value" id="tk-qb">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Alugados</span><div class="stat-value" id="tk-al">0</div></div>
+                    <div class="stat-box"><span class="stat-label">Parado</span><div class="stat-value" id="tk-pa">0</div></div>
+                </div>
+                <div class="total-geral"><span class="stat-label">Total Geral</span><div class="stat-value" id="tk-total">0</div></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function carregarDashboard() {
+            try {
+                const response = await fetch('/api/equipamentos');
+                const dados = await response.json();
+
+                const resumo = {
+                    mc33: { opPr: 0, qb: 0, al: 0, em: 0, total: 0 },
+                    mc90: { opPr: 0, qb: 0, al: 0, em: 0, total: 0 },
+                    tk: { opPr: 0, qb: 0, al: 0, pa: 0, total: 0 }
+                };
+
+                dados.forEach(item => {
+                    const tipo = (item.tipo_equipamento || "").toUpperCase();
+                    const cond = (item.condicao || "").toLowerCase();
+                    const prop = (item.propriedade || "").toLowerCase();
+
+                    let cat = null;
+                    if (tipo.includes("3300")) cat = "mc33";
+                    else if (tipo.includes("9090")) cat = "mc90";
+                    else if (tipo.includes("TALKMAN")) cat = "tk";
+
+                    if (cat) {
+                        resumo[cat].total++;
+                        
+                        // Lógica: Operando E Próprio
+                        if (cond.includes("operando") && (prop.includes("proprio") || prop.includes("próprio"))) {
+                            resumo[cat].opPr++;
+                        }
+                        
+                        if (cond.includes("quebrado")) resumo[cat].qb++;
+                        if (prop.includes("alugado")) resumo[cat].al++;
+                        
+                        // Campos específicos
+                        if (cat !== "tk" && prop.includes("emprestado")) resumo[cat].em++;
+                        if (cat === "tk" && (cond.includes("manutenção") || cond.includes("parado"))) resumo[cat].pa++;
+                    }
+                });
+
+                // Renderização
+                const atualizar = (prefix, data) => {
+                    document.getElementById(`${prefix}-op-pr`).innerText = data.opPr;
+                    document.getElementById(`${prefix}-qb`).innerText = data.qb;
+                    document.getElementById(`${prefix}-al`).innerText = data.al;
+                    document.getElementById(`${prefix}-total`).innerText = data.total;
+                    if(document.getElementById(`${prefix}-em`)) document.getElementById(`${prefix}-em`).innerText = data.em;
+                    if(document.getElementById(`${prefix}-pa`)) document.getElementById(`${prefix}-pa`).innerText = data.pa;
+                };
+
+                atualizar('mc33', resumo.mc33);
+                atualizar('mc90', resumo.mc90);
+                atualizar('tk', resumo.tk);
+
+            } catch (e) { console.error("Erro dashboard:", e); }
+        }
+        carregarDashboard();
+    </script>
+</body>
+</html>
