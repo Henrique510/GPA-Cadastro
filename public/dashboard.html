@@ -104,7 +104,6 @@
                 <th>Matrícula</th>
                 <th>Colaborador</th>
                 <th>Equipamento</th>
-                <th>Headset</th>
                 <th>Turno</th>
                 <th>Data Cadastro</th>
                 <th>Status</th>
@@ -162,7 +161,6 @@
                 <td>${item.matricula}</td>
                 <td>${nomeColaborador}</td>
                 <td>${item.equipamento || item.coletor || 'N/A'}</td>
-                <td>${item.headset || 'X'}</td>
                 <td>${item.turno || 'N/A'}</td>
                 <td>${dataFormatada}</td>
                 <td class="${getStatusClass(status)}">${status}</td>
@@ -258,7 +256,7 @@
     // Função de Exportar Excel (Mantida conforme original)
     function exportarParaExcelProfissional() {
         const linhas = document.querySelectorAll('#dataTable tr');
-        const dadosParaExcel = [["Matrícula", "Colaborador", "Equipamento", "Headset", "Turno", "Data Cadastro", "Status"]];
+        const dadosParaExcel = [["Matrícula", "Colaborador", "Equipamento", "Turno", "Data Cadastro", "Status"]];
         linhas.forEach(linha => {
             const colunas = linha.querySelectorAll('td');
             if (colunas.length > 0) {
