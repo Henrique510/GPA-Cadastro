@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const coletorInput = document.getElementById('coletor');
     const headsetInput = document.getElementById('headset');
     const matriculaInput = document.getElementById('matricula');
-    const turnoSelect = document.getElementById('turno');
+    // Removido turnoSelect pois foi retirado do HTML
     const devolucaoInput = document.getElementById('devolucaoColetor');
     const devolverButton = document.getElementById('devolver');
     const messageContainer = document.getElementById('messageContainer');
@@ -26,7 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (devolucaoTitle) {
         devolucaoTitle.addEventListener('click', () => {
-            devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
+            if (devolucaoSection) {
+                devolucaoSection.style.display = devolucaoSection.style.display === 'none' ? 'block' : 'none';
+            }
         });
     }
 
@@ -66,10 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
             submitButton.disabled = true;
             submitButton.textContent = 'Processando...';
 
-            const matricula = matriculaInput.value.trim();
-            const coletor = coletorInput.value.trim();
+            const matricula = matriculaInput ? matriculaInput.value.trim() : '';
+            const coletor = coletorInput ? coletorInput.value.trim() : '';
             const headset = headsetInput ? headsetInput.value.trim() : '';
-            const turno = turnoSelect.value;
+            // Ajustado: define como vazio já que não tem mais no HTML
+            const turno = ""; 
 
             if (!matricula || !coletor) {
                 showMessage('Preencha Matrícula e Coletor.', 'error');
@@ -79,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
-                // 1. Verifica Colaborador no Railway
+                // 1. Verifica Colaborador
                 const verificaColab = await fetch(`${API_URL}/verificarColaborador?matricula=${matricula}`);
                 const colabData = await verificaColab.json();
                 
@@ -103,8 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 showMessage(result.message || 'Cadastrado com sucesso!', 'success');
                 
                 // Limpa campos
-                matriculaInput.value = '';
-                coletorInput.value = '';
+                if (matriculaInput) matriculaInput.value = '';
+                if (coletorInput) coletorInput.value = '';
                 if (headsetInput) headsetInput.value = '';
                 
             } catch (error) {
@@ -123,8 +126,9 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const matricula = document.getElementById('matriculaColaborador').value.trim();
             const nome = document.getElementById('nomeColaborador').value.trim();
-            const turno = document.getElementById('turnoColaborador').value;
             const setor = document.getElementById('setorColaborador').value;
+            // Turno fixo vazio pois foi removido do HTML
+            const turno = ""; 
 
             try {
                 const response = await fetch(`${API_URL}/cadastrarColaborador`, {
@@ -147,10 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Botão de Devolução Manual
     if (devolverButton) {
         devolverButton.addEventListener('click', async () => {
-            const coletor = devolucaoInput.value.trim();
+            const coletor = devolucaoInput ? devolucaoInput.value.trim() : '';
             if (!coletor) return showMessage('Informe o coletor!', 'error');
             await devolveCollector(coletor);
-            devolucaoInput.value = '';
+            if (devolucaoInput) devolucaoInput.value = '';
         });
     }
 
